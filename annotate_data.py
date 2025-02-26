@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def annotate_data(file_path, label_intervals, output_path):
+def annotate_data(file_path, labels_file, output_path):
     # Load the dataset
     df = pd.read_csv(file_path)
 
@@ -16,12 +16,19 @@ def annotate_data(file_path, label_intervals, output_path):
     df.drop(columns=['timestamp'], inplace=True)  # Remove original timestamp column
 
     # Initialize the 'Label' column with 'neutral'
-    df['label'] = 'neutral'
+    df['label'] = 0
+
+    # Load label intervals from the CSV file
+    label_intervals = pd.read_csv(labels_file)
 
     # Iterate through the label intervals and update the Label column
-    for start_time, stop_time, label in label_intervals:
-        start_time = pd.to_datetime(start_time).strftime('%H:%M:%S.%f')
-        stop_time = pd.to_datetime(stop_time).strftime('%H:%M:%S.%f')
+    for _, row in label_intervals.iterrows():
+        start_time = row['start']
+        stop_time = row['stop']
+        labelstr = row['label']
+        label = 0
+        if labelstr == 'blink':
+            label = 1
         df.loc[(df['time'] >= start_time) & (df['time'] <= stop_time), 'label'] = label
 
     # Save the annotated dataset
@@ -33,13 +40,7 @@ def annotate_data(file_path, label_intervals, output_path):
 data_folder_path = '23-2/'
 annotated_path = '23-2/annotated/'
 file_name = "blinks.csv"  # Input file
+labels_file = "blinks_timestamps.csv"  # CSV file containing label intervals
 output_path = annotated_path + 'annotated_' + file_name  # Output file
 
-# Example list of intervals to annotate (preserving milliseconds)
-label_intervals = [
-    ("14:09:55.689", "14:09:57.500", "blink"),
-    ("14:10:05.123", "14:10:06.789", "gazing_left"),
-    ("14:10:08.456", "14:10:09.987", "gazing_right")
-]
-
-annotate_data(data_folder_path + file_name, label_intervals, output_path)
+annotate_data(data_folder_path + file_name, labels_file, output_path)
