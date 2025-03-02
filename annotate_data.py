@@ -29,6 +29,15 @@ def annotate_data(file_path, labels_file, output_path):
         label = 0
         if labelstr == 'blink':
             label = 1
+        elif labelstr == 'gazeleft':
+            label = 2
+        elif labelstr == 'gazeright':
+            label = 3
+        elif labelstr == 'gazecenter':
+            label = 4
+        else:
+            print(f"Unknown label: {labelstr}, in timestamp: {start_time} - {stop_time}")
+            return
         df.loc[(df['time'] >= start_time) & (df['time'] <= stop_time), 'label'] = label
 
     # Save the annotated dataset
@@ -39,8 +48,8 @@ def annotate_data(file_path, labels_file, output_path):
 # Example usage
 data_folder_path = '23-2/'
 annotated_path = '23-2/annotated/'
-file_name = "blinks.csv"  # Input file
-labels_file = "blinks_timestamps.csv"  # CSV file containing label intervals
+file_name = "eye gaze left right 1.csv"  # Input file
+labels_file = "eg1_ts.csv"  # CSV file containing label intervals
 output_path = annotated_path + 'annotated_' + file_name  # Output file
 
 annotate_data(data_folder_path + file_name, labels_file, output_path)

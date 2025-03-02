@@ -144,6 +144,8 @@ class ChannelVisualizer:
         # Add range slider
         fig.update_xaxes(rangeslider_visible=True)
 
+        fig.update_yaxes(fixedrange=False)
+
         # Configure spike lines for improved reading
         fig.update_layout(
             xaxis=dict(
@@ -243,7 +245,7 @@ window.addEventListener('keydown', function(event) {
     if (event.code === 'Space' || event.key === ' ') {
         if (currentHoverTimestamp !== null) {
             var timeStr = formatTime(currentHoverTimestamp);
-            navigator.clipboard.writeText(timeStr).then(function() {
+            navigator.clipboard.writeText(timeStr+',').then(function() {
                 console.log('Time copied to clipboard:', timeStr);
             }).catch(function(err) {
                 console.error('Error copying time to clipboard:', err);
