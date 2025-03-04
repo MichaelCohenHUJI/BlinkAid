@@ -7,7 +7,7 @@ from firstPlots import visualize_channels
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 
-def preprocess_data(file_path, output_path):
+def preprocess_data(file_path, model_path, existing_model=False):
     """Processes annotated time-series data for point-wise classification of blinks."""
     df = pd.read_csv(file_path)
 
@@ -28,8 +28,15 @@ def preprocess_data(file_path, output_path):
     y_train, y_test = y.iloc[:split_index], y.iloc[split_index:]
 
     # Train XGBoost model
-    model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss')
-    model.fit(X_train, y_train)
+    if existing_model:
+        model = xgb.XGBClassifier()
+        model.load_model('23-2/processed_data.json')
+        model.fit(X_train, y_train, xgb_model='23-2/processed_data.json')
+    else:
+        model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+        model.fit(X_train, y_train)
+
+
 
     # Predict on test set
     y_pred = model.predict(X_test)
@@ -38,7 +45,7 @@ def preprocess_data(file_path, output_path):
 
     # Compute confusion matrix and classification report
     cm = confusion_matrix(y_test, y_pred)
-    report = classification_report(y_test, y_pred, target_names=['Neutral (0)', 'Blink (1)'])
+    report = classification_report(y_test, y_pred, target_names=['Neutral (0)', 'Blink (1)','Gaze Left (2)','Gaze Right (3)', 'Gaze Center (4)'])
 
     print("Confusion Matrix:")
     print(cm)
@@ -46,8 +53,12 @@ def preprocess_data(file_path, output_path):
     print(report)
 
     # Save the trained model
-    model.save_model(output_path.replace('.csv', '.json'))
-    print(f"Trained model saved to {output_path.replace('.csv', '.json')}")
+    model.save_model(model_path)
+    print(f"Trained model saved to {model_path}")
+
+    import matplotlib.pyplot as plt
+    xgb.plot_importance(model)
+    plt.show()
 
     # Visualize channel data using firstPlots.py
     visualize_channels_with_misclassifications(file_path, y_test, y_pred)
@@ -95,7 +106,9 @@ def visualize_channels_with_misclassifications(file_path, y_test, y_pred):
 
 
 # Example usage
-input_file = "23-2/annotated/annotated_blinks.csv"  # Annotated input file
-output_file = "23-2/processed_data.csv"  # Processed dataset for ML training
+input_file = "data/raz_3-3/2025_03_03_1350_raz_squint.csv"  # Annotated input file
+model_name = "xgb_blink_gaze1.json"
+model_path = "models/" + model_name # Processed dataset for ML training
+existing_model = 0
 
-preprocess_data(input_file, output_file)
+preprocess_data(input_file, model_path, existing_model)

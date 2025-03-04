@@ -49,7 +49,7 @@ def annotate_data(file_path, labels_file, output_path):
 data_folder_path = '23-2/'
 annotated_path = '23-2/annotated/'
 file_name = "eye gaze left right 1.csv"  # Input file
-labels_file = "eg1_ts.csv"  # CSV file containing label intervals
+labels_file = "ts_eg1_raz23-2ts_eg1_yon23-2.csv"  # CSV file containing label intervals
 output_path = annotated_path + 'annotated_' + file_name  # Output file
 
 annotate_data(data_folder_path + file_name, labels_file, output_path)

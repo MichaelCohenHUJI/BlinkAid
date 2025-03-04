@@ -188,72 +188,86 @@ class ChannelVisualizer:
         # 4. Listens for the spacebar press; when pressed, it formats the time
         #    (HH:MM:SS.microseconds) from the hovered timestamp and copies it to the clipboard.
         post_script = """
-// Global variable to hold the current hovered timestamp
-var currentHoverTimestamp = null;
+        // Global variable to hold the current hovered timestamp
+        var currentHoverTimestamp = null;
 
-// Function to format timestamp to HH:MM:SS.microseconds.
-// Note: JavaScript Date only provides milliseconds, so we simulate microseconds.
-function formatTime(timestamp) {
-    var date = new Date(timestamp);
-    var hours = String(date.getHours()).padStart(2, '0');
-    var minutes = String(date.getMinutes()).padStart(2, '0');
-    var seconds = String(date.getSeconds()).padStart(2, '0');
-    var milliseconds = String(date.getMilliseconds()).padStart(3, '0');
-    // Append "000" to represent microseconds (since we only have milliseconds)
-    return hours + ":" + minutes + ":" + seconds + "." + milliseconds + "000";
-}
-
-// Hide default hover tooltips via CSS
-var style = document.createElement('style');
-style.innerHTML = ".hoverlayer { display: none !important; }";
-document.head.appendChild(style);
-
-// Create a fixed div to show hover info if not already present
-if (!document.getElementById('fixed-hover')) {
-    var fixedHover = document.createElement('div');
-    fixedHover.id = 'fixed-hover';
-    fixedHover.style.position = 'fixed';
-    fixedHover.style.top = '10px';
-    fixedHover.style.right = '10px';
-    fixedHover.style.background = 'white';
-    fixedHover.style.border = '1px solid black';
-    fixedHover.style.padding = '10px';
-    fixedHover.style.zIndex = '9999';
-    document.body.appendChild(fixedHover);
-}
-
-var plotDiv = document.getElementById('plotly-graph');
-
-// Listen for hover events: update fixed div and save hovered timestamp.
-plotDiv.on('plotly_hover', function(data){
-    currentHoverTimestamp = data.points[0].x;
-    var infotext = ["Timestamp: " + data.points[0].x];
-    infotext = infotext.concat(data.points.map(function(d){
-        return d.data.name + ': ' + d.y.toFixed(2);
-    }));
-    document.getElementById('fixed-hover').innerHTML = infotext.join('<br>');
-});
-
-// Clear fixed div and timestamp on unhover.
-plotDiv.on('plotly_unhover', function(data){
-    currentHoverTimestamp = null;
-    document.getElementById('fixed-hover').innerHTML = '';
-});
-
-// Listen for spacebar keydown to copy the time portion to the clipboard.
-window.addEventListener('keydown', function(event) {
-    if (event.code === 'Space' || event.key === ' ') {
-        if (currentHoverTimestamp !== null) {
-            var timeStr = formatTime(currentHoverTimestamp);
-            navigator.clipboard.writeText(timeStr+',').then(function() {
-                console.log('Time copied to clipboard:', timeStr);
-            }).catch(function(err) {
-                console.error('Error copying time to clipboard:', err);
-            });
+        // Function to format timestamp to HH:MM:SS.microseconds.
+        // Note: JavaScript Date only provides milliseconds, so we simulate microseconds.
+        function formatTime(timestamp) {
+            var date = new Date(timestamp);
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            var seconds = String(date.getSeconds()).padStart(2, '0');
+            var milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+            // Append "000" to represent microseconds (since we only have milliseconds)
+            return hours + ":" + minutes + ":" + seconds + "." + milliseconds + "000";
         }
-    }
-});
-"""
+
+        // Hide default hover tooltips via CSS
+        var style = document.createElement('style');
+        style.innerHTML = ".hoverlayer { display: none !important; }";
+        document.head.appendChild(style);
+
+        // Create a fixed div to show hover info if not already present
+        if (!document.getElementById('fixed-hover')) {
+            var fixedHover = document.createElement('div');
+            fixedHover.id = 'fixed-hover';
+            fixedHover.style.position = 'fixed';
+            fixedHover.style.top = '10px';
+            fixedHover.style.right = '10px';
+            fixedHover.style.background = 'white';
+            fixedHover.style.border = '1px solid black';
+            fixedHover.style.padding = '10px';
+            fixedHover.style.zIndex = '9999';
+            document.body.appendChild(fixedHover);
+        }
+
+        var plotDiv = document.getElementById('plotly-graph');
+
+        // Listen for hover events: update fixed div and save hovered timestamp.
+        plotDiv.on('plotly_hover', function(data){
+            currentHoverTimestamp = data.points[0].x;
+            var infotext = ["Timestamp: " + data.points[0].x];
+            infotext = infotext.concat(data.points.map(function(d){
+                return d.data.name + ': ' + d.y.toFixed(2);
+            }));
+            document.getElementById('fixed-hover').innerHTML = infotext.join('\\n');
+        });
+
+        // Clear fixed div and timestamp on unhover.
+        plotDiv.on('plotly_unhover', function(data){
+            currentHoverTimestamp = null;
+            document.getElementById('fixed-hover').innerHTML = '';
+        });
+
+        // Listen for spacebar keydown to copy the time portion to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.code === 'Space' || event.key === ' ') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',').then(function() {
+                        console.log('Time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying time to clipboard:', err);
+                    });
+                }
+            }
+        });
+
+        // Listen for "B" keydown to copy the time portion plus ",blink" to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'B' || event.key === 'b') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',blink').then(function() {
+                        console.log('Blink time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying blink time to clipboard:', err);
+                    });
+                }
+            }
+        });
+        """
 
         html_path = 'channel_visualization.html'
         fig.write_html(
@@ -284,5 +298,8 @@ def visualize_channels(filepath):
 
 if __name__ == "__main__":
     # Replace with your file path
-    filepath = os.path.join("23-2", "blinks.csv")
+    yon = 'data/yonatan_23-2'
+    raz = 'data/raz_3-3'
+    michael = 'data/michael_3-3'
+    filepath = os.path.join(raz, '2025_03_03_1311_raz_left_center.csv')
     visualize_channels(filepath)
