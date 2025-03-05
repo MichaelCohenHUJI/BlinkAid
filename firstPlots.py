@@ -267,6 +267,90 @@ class ChannelVisualizer:
                 }
             }
         });
+        
+        // Listen for "L" keydown to copy the time portion plus ",gazeleft" to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'L' || event.key === 'l') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',gazeleft').then(function() {
+                        console.log('Blink time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying blink time to clipboard:', err);
+                    });
+                }
+            }
+        });
+        
+        // Listen for "R" keydown to copy the time portion plus ",gazeright" to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'R' || event.key === 'r') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',gazeright').then(function() {
+                        console.log('Blink time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying blink time to clipboard:', err);
+                    });
+                }
+            }
+        });
+        
+        // Listen for "C" keydown to copy the time portion plus ",gazecenter" to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'C' || event.key === 'c') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',gazecenter').then(function() {
+                        console.log('Blink time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying blink time to clipboard:', err);
+                    });
+                }
+            }
+        });
+        
+        // Listen for "G" keydown to copy the time portion plus ",garbage" to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'G' || event.key === 'g') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',garbage').then(function() {
+                        console.log('Blink time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying blink time to clipboard:', err);
+                    });
+                }
+            }
+        });
+        
+        // Listen for "U" keydown to copy the time portion plus ",gazeup" to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'U' || event.key === 'u') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',gazeup').then(function() {
+                        console.log('Blink time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying blink time to clipboard:', err);
+                    });
+                }
+            }
+        });
+        
+        // Listen for "D" keydown to copy the time portion plus ",gazedown" to the clipboard.
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'D' || event.key === 'd') {
+                if (currentHoverTimestamp !== null) {
+                    var timeStr = formatTime(currentHoverTimestamp);
+                    navigator.clipboard.writeText(timeStr + ',gazedown').then(function() {
+                        console.log('Blink time copied to clipboard:', timeStr);
+                    }).catch(function(err) {
+                        console.error('Error copying blink time to clipboard:', err);
+                    });
+                }
+            }
+        });
         """
 
         html_path = 'channel_visualization.html'
@@ -301,5 +385,5 @@ if __name__ == "__main__":
     yon = 'data/yonatan_23-2'
     raz = 'data/raz_3-3'
     michael = 'data/michael_3-3'
-    filepath = os.path.join(raz, '2025_03_03_1311_raz_left_center.csv')
+    filepath = os.path.join(yon, 'eye gaze left right 1.csv')
     visualize_channels(filepath)
