@@ -27,7 +27,9 @@ def annotate_data(file_path, labels_file, output_path):
         stop_time = row['stop']
         labelstr = row['label']
         label = 0
-        if labelstr == 'blink':
+        if labelstr == 'garbage':
+            df = df.drop(df[(df['time'] >= start_time) & (df['time'] <= stop_time)].index)
+        elif labelstr == 'blink':
             label = 1
         elif labelstr == 'gazeleft':
             label = 2
@@ -35,6 +37,10 @@ def annotate_data(file_path, labels_file, output_path):
             label = 3
         elif labelstr == 'gazecenter':
             label = 4
+        elif labelstr == 'gazeup':
+            label = 5
+        elif labelstr == 'gazedown':
+            label = 6
         else:
             print(f"Unknown label: {labelstr}, in timestamp: {start_time} - {stop_time}")
             return
@@ -45,11 +51,26 @@ def annotate_data(file_path, labels_file, output_path):
     print(f"Annotated dataset saved to {output_path}")
 
 
-# Example usage
-data_folder_path = '23-2/'
-annotated_path = '23-2/annotated/'
-file_name = "eye gaze left right 1.csv"  # Input file
-labels_file = "ts_eg1_raz23-2ts_eg1_yon23-2.csv"  # CSV file containing label intervals
-output_path = annotated_path + 'annotated_' + file_name  # Output file
 
-annotate_data(data_folder_path + file_name, labels_file, output_path)
+annotations = {
+    'raz': ['raz3-3_lc_ts.csv', 'raz3-3_lr_ts.csv', 'raz3-3_rc2_ts.csv',
+            'raz3-3_ud_ts.csv', 'raz_3-3_blinks_ts.csv'],
+    'yon': ['ts_blinks_yon23-2.csv', 'ts_eg1_yon23-2.csv']
+}
+
+
+ann_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/'}
+
+
+ann_files = [ann_paths[subject] + ann for subject in annotations.keys() for ann in annotations[subject]]
+
+data_files = []
+# Example usage
+data_folder_path = 'data/'
+subject = 'raz_3-3/'
+annotated_path = 'annotated/'
+file_name = "2025_03_03_1308_raz_left_right.csv"  # Input file
+labels_file = data_folder_path + subject + "raz_3-3_blinks_ts.csv"  # CSV file containing label intervals
+output_path = data_folder_path + subject + annotated_path + 'annotated_' + file_name  # Output file
+
+annotate_data(data_folder_path + subject + file_name, labels_file, output_path)

@@ -351,6 +351,8 @@ class ChannelVisualizer:
                 }
             }
         });
+        
+        
         """
 
         html_path = 'channel_visualization.html'
@@ -385,5 +387,5 @@ if __name__ == "__main__":
     yon = 'data/yonatan_23-2'
     raz = 'data/raz_3-3'
     michael = 'data/michael_3-3'
-    filepath = os.path.join(yon, 'eye gaze left right 1.csv')
+    filepath = os.path.join(raz, '2025_03_03_1322_raz_up_down.csv')
     visualize_channels(filepath)
