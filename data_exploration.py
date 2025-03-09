@@ -1,17 +1,18 @@
 import pandas as pd
 from scipy.stats import describe as desc
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import preprocessing
+from sklearn.decomposition import PCA, FastICA
+import os
+from firstPlots import visualize_channels
 
 annotations = {
     'raz': ['raz3-3_lc_ts.csv', 'raz3-3_lr_ts.csv', 'raz3-3_rc2_ts.csv',
             'raz3-3_ud_ts.csv', 'raz_3-3_blinks_ts.csv'],
     'yon': ['ts_blinks_yon23-2.csv', 'ts_eg1_yon23-2.csv']
 }
-
-
 ann_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/'}
-
-
 ann_files = [ann_paths[subject] + ann for subject in annotations.keys() for ann in annotations[subject]]
 
 

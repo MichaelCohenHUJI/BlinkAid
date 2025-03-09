@@ -13,7 +13,7 @@ def annotate_data(file_path, labels_file, output_path):
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df['date'] = df['timestamp'].dt.date  # Extract date
     df['time'] = df['timestamp'].dt.strftime('%H:%M:%S.%f')  # Extract time with milliseconds
-    df.drop(columns=['timestamp'], inplace=True)  # Remove original timestamp column
+    # df.drop(columns=['timestamp'], inplace=True)  # Remove original timestamp column
 
     # Initialize the 'Label' column with 'neutral'
     df['label'] = 0
@@ -46,31 +46,31 @@ def annotate_data(file_path, labels_file, output_path):
             return
         df.loc[(df['time'] >= start_time) & (df['time'] <= stop_time), 'label'] = label
 
+    df.drop(columns=['time', 'date'], inplace=True)
+
     # Save the annotated dataset
     df.to_csv(output_path, index=False)
     print(f"Annotated dataset saved to {output_path}")
 
 
+if __name__ == '__main__':
+    data_ann_pairs = {
+        'raz': [('2025_03_03_1311_raz_left_center.csv', 'raz3-3_lc_ts.csv'),
+                ('2025_03_03_1308_raz_left_right.csv', 'raz3-3_lr_ts.csv'),
+                ('2025_03_03_1319_raz_right_center_2.csv', 'raz3-3_rc2_ts.csv'),
+                ('2025_03_03_1322_raz_up_down.csv', 'raz3-3_ud_ts.csv'),
+                ('2025_03_03_1303_raz_blinks_no_metronome.csv', 'raz_3-3_blinks_ts.csv')],
 
-annotations = {
-    'raz': ['raz3-3_lc_ts.csv', 'raz3-3_lr_ts.csv', 'raz3-3_rc2_ts.csv',
-            'raz3-3_ud_ts.csv', 'raz_3-3_blinks_ts.csv'],
-    'yon': ['ts_blinks_yon23-2.csv', 'ts_eg1_yon23-2.csv']
-}
+        'yon': [('blinks.csv', 'ts_blinks_yon23-2.csv'),
+                ('eye gaze left right 1.csv', 'ts_eg1_yon23-2.csv')]
+    }
 
+    folder_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/'}
 
-ann_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/'}
-
-
-ann_files = [ann_paths[subject] + ann for subject in annotations.keys() for ann in annotations[subject]]
-
-data_files = []
-# Example usage
-data_folder_path = 'data/'
-subject = 'raz_3-3/'
-annotated_path = 'annotated/'
-file_name = "2025_03_03_1308_raz_left_right.csv"  # Input file
-labels_file = data_folder_path + subject + "raz_3-3_blinks_ts.csv"  # CSV file containing label intervals
-output_path = data_folder_path + subject + annotated_path + 'annotated_' + file_name  # Output file
-
-annotate_data(data_folder_path + subject + file_name, labels_file, output_path)
+    annotated_path = 'annotated/'
+    for subj in data_ann_pairs.keys():
+        for pair in data_ann_pairs[subj]:
+            data_file_name, label_file = pair
+            folder_path = folder_paths[subj]
+            output_name = 'annotated_' + data_file_name
+            annotate_data(folder_path + data_file_name, folder_path + label_file, folder_path + annotated_path + output_name)

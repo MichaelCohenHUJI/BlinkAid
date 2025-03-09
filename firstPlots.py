@@ -7,7 +7,7 @@ import webbrowser
 
 
 class ChannelVisualizer:
-    def __init__(self, filepath):
+    def __init__(self, input, plot_name):
         """
         Initialize the visualizer with data file path
 
@@ -17,11 +17,11 @@ class ChannelVisualizer:
             Path to the CSV file containing channel data
         """
         # Load data
-        self.df = pd.read_csv(filepath)
+        self.df = input
         self.df['timestamp'] = pd.to_datetime(self.df['timestamp'])
-        self.channels = [col for col in self.df.columns if col.startswith('channel_')]
+        self.channels = [col for col in self.df.columns if col != 'timestamp']
         # Store the file name for display in the plot
-        self.filename = os.path.basename(filepath)
+        self.filename = plot_name
 
         # Create GUI
         self.root = tk.Tk()
@@ -369,7 +369,7 @@ class ChannelVisualizer:
         self.root.mainloop()
 
 
-def visualize_channels(filepath):
+def visualize_channels(input, plot_name, is_file=False):
     """
     Create and display the channel visualization
 
@@ -378,7 +378,11 @@ def visualize_channels(filepath):
     filepath : str
         Path to the CSV file containing channel data
     """
-    app = ChannelVisualizer(filepath)
+    df = input
+    if is_file:
+        df = pd.read_csv(input)
+        plot_name = os.path.basename(input)
+    app = ChannelVisualizer(df, plot_name)
     app.run()
 
 
@@ -387,5 +391,5 @@ if __name__ == "__main__":
     yon = 'data/yonatan_23-2'
     raz = 'data/raz_3-3'
     michael = 'data/michael_3-3'
-    filepath = os.path.join(raz, '2025_03_03_1322_raz_up_down.csv')
-    visualize_channels(filepath)
+    filepath = os.path.join(raz, '2025_03_03_1303_raz_blinks_no_metronome.csv')
+    visualize_channels(filepath, '', True)
