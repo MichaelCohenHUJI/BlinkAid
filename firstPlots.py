@@ -18,7 +18,7 @@ class ChannelVisualizer:
         """
         # Load data
         self.df = input
-        self.df['timestamp'] = pd.to_datetime(self.df['timestamp'])
+        self.df['timestamp'] = pd.to_datetime(self.df['timestamp'],format='mixed', errors='coerce')
         self.channels = [col for col in self.df.columns if col != 'timestamp']
         # Store the file name for display in the plot
         self.filename = plot_name

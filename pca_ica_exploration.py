@@ -7,37 +7,6 @@ from sklearn import preprocessing
 from sklearn.decomposition import PCA, FastICA
 import os
 from firstPlots import visualize_channels
-#%%
-annotations = {
-    'raz': ['raz3-3_lc_ts.csv', 'raz3-3_lr_ts.csv', 'raz3-3_rc2_ts.csv',
-            'raz3-3_ud_ts.csv', 'raz_3-3_blinks_ts.csv'],
-    'yon': ['ts_blinks_yon23-2.csv', 'ts_eg1_yon23-2.csv']
-}
-
-
-ann_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/'}
-
-
-ann_files = [ann_paths[subject] + ann for subject in annotations.keys() for ann in annotations[subject]]
-
-#%%
-yon = 'data/yonatan_23-2'
-raz = 'data/raz_3-3'
-michael = 'data/michael_3-3'
-filename = '2025_03_03_1340_raz_wink_left_right.csv'
-filepath = os.path.join(raz, filename)
-df = pd.read_csv(filepath)
-#%%
-# plot data
-visualize_channels(df, filename + ' original data')
-
-
-#%%
-# run PCA
-file_names = []
-for f in os.listdir(raz):
-    if f.endswith('.csv') and f.startswith('2025'):
-        file_names.append(f)
 
 #%%
 # standardized data
@@ -60,22 +29,12 @@ def run_pca(df, n=8):
     print(pca.explained_variance_ratio_)
     print(np.sum(pca.explained_variance_ratio_))
     
-    return df_pca, pca_result
+    return df_pca, pca_result, scaler
     
 
 
 
 
-
-
-
-#%%
-# for f in file_names:
-#     cur_df = pd.read_csv(os.path.join(raz, f))
-#     print(f + f' ')
-#     run_pca(df, 8)
-#     print()
-    
 #%%
 def run_ica(df, n=8, do_pca=True):
     """
@@ -86,7 +45,7 @@ def run_ica(df, n=8, do_pca=True):
     """
     X = None
     if do_pca:
-        df_pca, X = run_pca(df,n)
+        df_pca, X, _ = run_pca(df, n)
     else:
         scaler = preprocessing.StandardScaler()
         df_scaled = pd.DataFrame(scaler.fit_transform(df.drop(columns=['timestamp'])), columns=df.columns[1:])
@@ -137,9 +96,55 @@ def plot_ica(df, n_components=8):
 
 #%%
 if __name__ == '__main__':
-    for n in range(5):
-        ica, _ = run_ica(df, n+1, False)
-        visualize_channels(ica, filename + ' ICA ' + str(n))
+    # %%
+    data_files = {
+        'raz': ['2025_03_03_1303_raz_blinks_no_metronome.csv',
+                '2025_03_03_1308_raz_left_right.csv',
+                '2025_03_03_1311_raz_left_center.csv',
+                '2025_03_03_1319_raz_right_center_2.csv',
+                '2025_03_03_1322_raz_up_down.csv'],
+
+        'yon': ['annotated_blinks.csv',
+                'annotated_eye gaze left right 1.csv']
+    }
+
+    data_paths = {'raz': 'data/raz_3-3/annotated/annotated_', 'yon': 'data/yonatan_23-2/annotated/annotated_', 'michael': 'data/michael_3-3/'}
+
+    subj = 'raz'
+
+    data_files_paths = [data_paths[subj] + f for f in data_files[subj]]
+
+    # %%
+    df = pd.concat((pd.read_csv(f) for f in data_files_paths), ignore_index=True)
+    labales_df = None
+    if df.columns[-1] == 'label':
+        labales_df = df['label']
+        df = df.drop(columns=['label'])
+
+    # %%
+    # plot data
+    visualize_channels(df, subj + ' original data')
+    pca_df, pca, scaler = run_pca(df,3)
+    visualize_channels(pca_df, subj + ' pca')
+
+
+
+    # %%
+    # for f in file_names:
+    #     cur_df = pd.read_csv(os.path.join(raz, f))
+    #     print(f + f' ')
+    #     run_pca(df, 8)
+    #     print()
+
+    # %%
+    # run PCA
+    # file_names = []
+    # for f in os.listdir(raz):
+    #     if f.endswith('.csv') and f.startswith('2025'):
+    #         file_names.append(f)
+    # for n in range(5):
+    #     ica, _ = run_ica(df, n+1, False)
+    #     visualize_channels(ica, filename + ' ICA ' + str(n))
 
     # df_pca, X = run_pca(df, 8)
 
