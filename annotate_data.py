@@ -2,6 +2,13 @@ import pandas as pd
 
 
 def annotate_data(file_path, labels_file, output_path):
+    '''
+    gets the raw data and labels timestamps and creates a labeled df. saving as a file and returns it
+    :param file_path: raw data path
+    :param labels_file: labels timestamps path
+    :param output_path: where to save the labeled data (including new file name)
+    :return: the labeled df of the format: timestamp, channel_1-channel_16, label
+    '''
     # Load the dataset
     df = pd.read_csv(file_path)
 
@@ -51,6 +58,8 @@ def annotate_data(file_path, labels_file, output_path):
     # Save the annotated dataset
     df.to_csv(output_path, index=False)
     print(f"Annotated dataset saved to {output_path}")
+
+    return df
 
 
 if __name__ == '__main__':

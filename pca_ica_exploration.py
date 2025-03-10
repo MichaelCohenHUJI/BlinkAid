@@ -136,13 +136,14 @@ def plot_ica(df, n_components=8):
     
 
 #%%
-for n in range(5):
-    ica, _ = run_ica(df, n+1, False)
-    visualize_channels(ica, filename + ' ICA ' + str(n))
+if __name__ == '__main__':
+    for n in range(5):
+        ica, _ = run_ica(df, n+1, False)
+        visualize_channels(ica, filename + ' ICA ' + str(n))
 
-# df_pca, X = run_pca(df, 8)
+    # df_pca, X = run_pca(df, 8)
 
-# visualize_channels(df_pca, filename + ' PCA')
-# plot_ica(ica, 5)
+    # visualize_channels(df_pca, filename + ' PCA')
+    # plot_ica(ica, 5)
 
 
