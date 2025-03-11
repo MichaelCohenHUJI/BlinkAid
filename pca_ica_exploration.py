@@ -11,6 +11,11 @@ from firstPlots import visualize_channels
 #%%
 # standardized data
 def run_pca(df, n=8):
+    labels_df = None
+    if df.columns[-1] == 'label':
+        labels_df = df['label']
+        df = df.drop(columns=['label'])
+
     scaler = preprocessing.StandardScaler()
     df_scaled = pd.DataFrame(scaler.fit_transform(df.drop(columns=['timestamp'])), columns=df.columns[1:])
     
@@ -28,6 +33,9 @@ def run_pca(df, n=8):
     df_pca = df_pca[cols]
     print(pca.explained_variance_ratio_)
     print(np.sum(pca.explained_variance_ratio_))
+
+    if labels_df is not None:
+        df_pca['label'] = labels_df
     
     return df_pca, pca_result, scaler
     
@@ -116,9 +124,9 @@ if __name__ == '__main__':
 
     # %%
     df = pd.concat((pd.read_csv(f) for f in data_files_paths), ignore_index=True)
-    labales_df = None
+    labels_df = None
     if df.columns[-1] == 'label':
-        labales_df = df['label']
+        labels_df = df['label']
         df = df.drop(columns=['label'])
 
     # %%

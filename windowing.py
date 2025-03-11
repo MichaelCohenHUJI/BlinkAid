@@ -45,7 +45,7 @@ def create_windows(df, window_length, overlap=0.5, inc_label=True):
 
         if inc_label:
             # Assign a label (majority vote)
-            window_label = mode(window[label_col].values, axis=None).mode[0] if not window[label_col].empty else 0
+            window_label = mode(window[label_col].values, axis=None, keepdims=True).mode[0] if not window[label_col].empty else 0
             feature_list.append(np.concatenate([[windows_timestamps[-1]], features, [window_label]]))  # Add timestamp and label
 
         else:
