@@ -9,8 +9,8 @@ import os
 from firstPlots import visualize_channels
 
 #%%
-# standardized data
-def run_pca(df, n=8):
+
+def train_pca(df, n=8):
     labels_df = None
     if df.columns[-1] == 'label':
         labels_df = df['label']
@@ -37,7 +37,7 @@ def run_pca(df, n=8):
     if labels_df is not None:
         df_pca['label'] = labels_df
     
-    return df_pca, pca_result, scaler
+    return df_pca, pca_result, pca, scaler
     
 
 
@@ -53,7 +53,7 @@ def run_ica(df, n=8, do_pca=True):
     """
     X = None
     if do_pca:
-        df_pca, X, _ = run_pca(df, n)
+        df_pca, X, _, __ = train_pca(df, n)
     else:
         scaler = preprocessing.StandardScaler()
         df_scaled = pd.DataFrame(scaler.fit_transform(df.drop(columns=['timestamp'])), columns=df.columns[1:])
@@ -132,7 +132,7 @@ if __name__ == '__main__':
     # %%
     # plot data
     visualize_channels(df, subj + ' original data')
-    pca_df, pca, scaler = run_pca(df,3)
+    pca_df, X, pca, scaler = train_pca(df, 3)
     visualize_channels(pca_df, subj + ' pca')
 
 

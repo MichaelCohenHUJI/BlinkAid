@@ -5,11 +5,11 @@ import os
 import plotly.graph_objects as go
 from firstPlots import visualize_channels
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from datetime import datetime
+# from BlinkAidXGB import BlinkAidXGB
 
 
 
-def preprocess_data(datadf ,n_classes, model_name=None, model_path=None, existing_model=False):
+def train_xgb(datadf, n_classes, model_path=None, existing_model=False):
     """Processes annotated time-series data for point-wise classification of blinks."""
 
     # Ensure timestamp consistency
@@ -30,7 +30,7 @@ def preprocess_data(datadf ,n_classes, model_name=None, model_path=None, existin
     if existing_model:
         model = xgb.XGBClassifier()
         model.load_model(model_path)
-        model.fit(X_train, y_train, xgb_model='23-2/processed_data.json')
+        model.fit(X_train, y_train, xgb_model=model_path)
     else:
         model = xgb.XGBClassifier(
             eval_metric='mlogloss',  # Multi-class log loss
@@ -57,19 +57,13 @@ def preprocess_data(datadf ,n_classes, model_name=None, model_path=None, existin
     print("\nClassification Report:")
     print(report)
 
-    # Save the trained model
-    if model_name is not None:
-        models_folder = "models/"
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        new_path = models_folder + model_name + "_" +timestamp + ".json"
-        model.save_model(new_path)
-        print(f"Trained model saved to {new_path}")
-
     import matplotlib
     matplotlib.use("TkAgg")  # Non-interactive backend
     import matplotlib.pyplot as plt
     xgb.plot_importance(model)
     plt.show()
+
+    return model, cm, report
 
     # Visualize channel data using firstPlots.py
     # visualize_channels_with_misclassifications(datadf, y_test, y_pred)
@@ -139,4 +133,4 @@ if __name__ == '__main__':
     existing_model = 0
     n = 7
 
-    preprocess_data(df, n, model_name=model_name)
+    train_xgb(df, n, model_name=model_name)
