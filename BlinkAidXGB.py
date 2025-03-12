@@ -9,6 +9,7 @@ class BlinkAidXGB(XGBClassifier):
         self._pca_model_path = None
         self._scaler_path = None
 
+
     def set_window_length(self, value):
         self._window_length = value
 

@@ -1,6 +1,6 @@
 import os
 from pca_ica_exploration import train_pca
-from windowing import create_windows
+from windowing import create_windows1, create_windows
 import pandas as pd
 from firstModel import train_xgb
 from datetime import datetime
@@ -23,31 +23,47 @@ if __name__ == '__main__':
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         model_folder = "models/" + model_name + "_" + timestamp + "/"
         os.makedirs(model_folder, exist_ok=True)
-        model_path = model_folder + model_name + "_" + timestamp + ".json"
+
+
+        model_meta = {}
 
         # collect data from all files
         ann_data_paths = [folder_paths[subj] + f for f in ann_data[subj]]
         df = pd.concat((pd.read_csv(f) for f in ann_data_paths), ignore_index=True)
 
         # run pca on the concatenated data
-        p_components = 16
+        p_components = 3
+        model_meta['p_components'] = p_components
         df, pca_results, pca, scaler = train_pca(df, p_components)
 
         # save pca and scaler data
-        joblib.dump(scaler, model_folder + model_name + "_" + timestamp + "_scaler.pkl")
-        joblib.dump(pca, model_folder + model_name + "_" + timestamp + "_pca_model.pkl")
+        scaler_path = model_folder + model_name + "_" + timestamp + "_scaler.pkl"
+        joblib.dump(scaler, scaler_path)
+        model_meta['scaler_path'] = scaler_path
+        pca_model_path = model_folder + model_name + "_" + timestamp + "_pca_model.pkl"
+        joblib.dump(pca, pca_model_path)
+        model_meta['pca_model_path'] = pca_model_path
 
         # create labeled windows from annotated samples
-        windows = create_windows(df, 0.4)
+        window_length = 0.3
+        overlap = 0.99
+        model_meta['window_length'] = window_length
+        model_meta['overlap'] = overlap
+        windows = create_windows1(df, window_length, overlap)
 
         # train model
         existing_model = 0
         n_classes = 7
-        trained_model, cm, report = train_xgb(df, n_classes)
+        model_meta['n_classes'] = n_classes
+        trained_model, cm, report = train_xgb(windows, n_classes)
 
         # save model
-        trained_model.save_model(model_path)
+        model_path = model_folder + model_name + "_" + timestamp + ".pkl"
+        joblib.dump(trained_model, model_path)
         print(f"Trained model saved to {model_path}")
+
+        meta_path = model_folder + model_name + "_" + timestamp + "_metadata.pkl"
+        joblib.dump(model_meta, meta_path)
 
 
 

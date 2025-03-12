@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.stats import describe as desc
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA, FastICA
 import os
 from firstPlots import visualize_channels
@@ -16,7 +16,7 @@ def train_pca(df, n=8):
         labels_df = df['label']
         df = df.drop(columns=['label'])
 
-    scaler = preprocessing.StandardScaler()
+    scaler = StandardScaler()
     df_scaled = pd.DataFrame(scaler.fit_transform(df.drop(columns=['timestamp'])), columns=df.columns[1:])
     
     df_scaled['timestamp'] = df['timestamp']
@@ -42,6 +42,16 @@ def train_pca(df, n=8):
 
 
 
+#%%
+
+def apply_pca(df: pd.DataFrame, scaler: StandardScaler, pca: PCA):
+    df_scaled = scaler.transform(df)
+    pca_result = pca.fit_transform(df_scaled)
+    pca_columns = [f'PC{i + 1}' for i in range(pca.n_components_)]
+    df_pca = pd.DataFrame(pca_result, columns=pca_columns)
+
+
+
 
 #%%
 def run_ica(df, n=8, do_pca=True):
@@ -55,7 +65,7 @@ def run_ica(df, n=8, do_pca=True):
     if do_pca:
         df_pca, X, _, __ = train_pca(df, n)
     else:
-        scaler = preprocessing.StandardScaler()
+        scaler = StandardScaler()
         df_scaled = pd.DataFrame(scaler.fit_transform(df.drop(columns=['timestamp'])), columns=df.columns[1:])
 
         df_scaled['timestamp'] = df['timestamp']
