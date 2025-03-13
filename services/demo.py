@@ -7,6 +7,9 @@ from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.detection.emg_detectors.examples.blink_detector_cnn import BlinkDetectorCNN
 from services.detection.emg_detectors.examples.blink_detector_threshold_voting import BlinkDetectorThresholdVoting
 from services.edge.devices.playback.emg_csv_reader import EmgCsvReader
+from services.common.models.detection import DetectionModel
+
+from services.detection.emg_detectors.michael_windowed_baseline.XGB_windowed_baseline import XGB_windowed_baseline
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -19,7 +22,7 @@ async def detection_demo(detector: BaseEmgDetector, csv_path: Path):
     detections = []
 
     logger.info(f"📂 Loading CSV from {csv_path}...")
-    emg_reader = EmgCsvReader(csv_path, simulate_live_data=False, loop=False)
+    emg_reader = EmgCsvReader(csv_path, simulate_live_data=True, loop=False)
     await emg_reader.load_data()
 
     # Start reading EMG data and running the detector
@@ -53,9 +56,10 @@ async def detection_demo(detector: BaseEmgDetector, csv_path: Path):
 if __name__ == "__main__":
     # <-- USE YOUR DETECTOR HERE -->
     # detector = BlinkDetectorThresholdVoting()
-    detector = BlinkDetectorCNN()
+    # detector = BlinkDetectorCNN()
+    detector = XGB_windowed_baseline()
 
     # <-- USE YOUR CSV HERE -->
-    data_path = PROJECT_ROOT / "data/michael_3-3/2025_03_03_1350_michael_blinks.csv"
+    data_path = PROJECT_ROOT / "data/raz_3-3/2025_03_03_1303_raz_blinks_no_metronome.csv"
 
     asyncio.run(detection_demo(detector, data_path))

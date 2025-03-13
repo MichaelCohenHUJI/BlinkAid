@@ -8,9 +8,10 @@ import pandas as pd
 from keras.src.saving import load_model
 
 from services.common.enums.detection_types import DetectionType
-from services.common.models.detection import DetectionModel
 from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
+from services.common.models.detection import DetectionModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class BlinkDetectorCNN(BaseEmgDetector):
         self._steps += 1
         confidence = 0.0
 
-        # Append the new data to the buffer
+        # Append the new data to the bufferfrom services.common.models.detection import DetectionModel
         self._emg_data_buffer.append(emg_data)
         if len(self._emg_data_buffer) == self._emg_data_buffer_size:
 
