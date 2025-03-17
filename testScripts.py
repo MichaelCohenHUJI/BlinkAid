@@ -1,75 +1,114 @@
-# Re-import necessary libraries after execution state reset
-import numpy as np
+import os
+from pca_ica_exploration import train_pca
+from windowing import create_windows
 import pandas as pd
+from firstModel import train_xgb
+from datetime import datetime
+import joblib
+from torch.utils.tensorboard import SummaryWriter
+import matplotlib.pyplot as plt
+import seaborn as sns
+import io
+import torch
 
-# Define parameters
-num_samples = 10000  # 10 seconds at 1000 Hz
-sampling_rate = 1000  # Hz
-window_size = 400  # 0.4 seconds
-overlap = 0.5  # 50% overlap
-step_size = int(window_size * (1 - overlap))  # Step size for sliding window
+if __name__ == '__main__':
+    ann_data = {
+        'raz': ['annotated_2025_03_03_1303_raz_blinks_no_metronome.csv',
+                'annotated_2025_03_03_1308_raz_left_right.csv',
+                'annotated_2025_03_03_1311_raz_left_center.csv',
+                'annotated_2025_03_03_1319_raz_right_center_2.csv',
+                'annotated_2025_03_03_1322_raz_up_down.csv'],
 
-# Create timestamps
-timestamps = pd.date_range("2025-03-10", periods=num_samples, freq="1ms")
+        'yon': ['annotated_blinks.csv',
+                'annotated_eye gaze left right 1.csv']
+    }
+    folder_paths = {'raz': 'data/raz_3-3/annotated/', 'yon': 'data/yonatan_23-2/annotated/'}
+    subj = 'raz'
+    model_name = "raz_xg_windowed_stdized_16pc"
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-# Generate synthetic EMG sensor data (16 sensors)
-sensor_data = np.random.randn(num_samples, 16)
-df = pd.DataFrame(sensor_data, columns=[f"sensor_{i + 1}" for i in range(16)])
-df.insert(0, "timestamp", timestamps)  # Insert timestamps as the first column
+    model_meta = {}
 
-# Simulated event labels (0 = no event, 1 = blink, 2 = look left)
-df["event_label"] = np.random.choice([0, 1, 2], size=num_samples)
+    # collect data from all files
+    ann_data_paths = [folder_paths[subj] + f for f in ann_data[subj]]
+    df = pd.concat((pd.read_csv(f) for f in ann_data_paths), ignore_index=True)
 
+    # run pca on the concatenated data
+    p_components = 3
+    model_meta['p_components'] = p_components
+    df, pca_results, pca, scaler = train_pca(df, p_components)
 
-# Function to create feature windows with timestamps and labels
-def create_feature_windows_with_labels(df, window_size, overlap=0.5, label_col="event_label"):
-    """
-    Converts sliding windows into a tabular format for ML models like XGBoost or LightGBM.
-    Keeps the first column (timestamp) and last column (label).
+    model_name = "raz_xg_windowed_stdized_" + str(p_components) + 'pc'
+    model_folder = "models/" + model_name + "_" + timestamp + "/"
+    os.makedirs(model_folder, exist_ok=True)
 
-    Parameters:
-    - df (pd.DataFrame): DataFrame where the first column is 'timestamp' and the last column is the label.
-    - window_size (int): Number of samples per window.
-    - overlap (float): Fraction of window overlap (0.0 to 1.0).
-    - label_col (str): Name of the column containing event labels.
+    # Initialize TensorBoard writer
+    tb_log_dir = os.path.join(model_folder, 'tensorboard')
+    writer = SummaryWriter(log_dir=tb_log_dir)
 
-    Returns:
-    - feature_df (pd.DataFrame): Flattened feature representation of each window.
-    """
-    step_size = int(window_size * (1 - overlap))  # Step size for sliding window
-    num_samples = df.shape[0]  # Total samples
+    # Log PCA explained variance to TensorBoard
+    for i, var in enumerate(pca.explained_variance_ratio_):
+        writer.add_scalar('PCA/Explained_Variance_Ratio_PC' + str(i+1), var, 0)
 
-    timestamp_col = df.columns[0]  # First column is timestamp
-    sensor_cols = df.columns[1:-1]  # Exclude timestamp and label
-    feature_list = []
-    timestamps = []
-    labels = []
+    # save pca and scaler data
+    scaler_path = model_folder + model_name + "_" + timestamp + "_scaler.pkl"
+    joblib.dump(scaler, scaler_path)
+    model_meta['scaler_path'] = scaler_path
+    pca_model_path = model_folder + model_name + "_" + timestamp + "_pca_model.pkl"
+    joblib.dump(pca, pca_model_path)
+    model_meta['pca_model_path'] = pca_model_path
 
-    # Create list of windows
-    for i in range(0, num_samples - window_size, step_size):
-        window = df.iloc[i:i + window_size]
+    # create labeled windows from annotated samples
+    window_length = 0.3
+    overlap = 0.7
+    model_meta['window_length'] = window_length
+    model_meta['overlap'] = overlap
+    windows = create_windows(df, window_length, overlap)
 
-        # Store the timestamp of the first row in the window
-        timestamps.append(window[timestamp_col].iloc[0])
+    # train model
+    existing_model = 0
+    n_classes = 7
+    model_meta['n_classes'] = n_classes
+    trained_model, cm, report, report_dict = train_xgb(windows, n_classes)
 
-        # Flatten sensor values
-        features = window[sensor_cols].values.flatten()
+    # Log classification metrics to TensorBoard
+    for label, metrics in report_dict.items():
+        if isinstance(metrics, dict):
+            writer.add_scalar(f'Classification_Report/{label}_precision', metrics['precision'], 0)
+            writer.add_scalar(f'Classification_Report/{label}_recall', metrics['recall'], 0)
+            writer.add_scalar(f'Classification_Report/{label}_f1-score', metrics['f1-score'], 0)
+        else:
+            writer.add_scalar('Classification_Report/accuracy', report_dict['accuracy'], 0)
 
-        # Assign a label (majority vote)
-        label = window[label_col].mode()[0] if not window[label_col].mode().empty else 0
+    # 🔥 Add Confusion Matrix Heatmap
+    def plot_confusion_matrix(cm, labels):
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
+        plt.xlabel('Predicted')
+        plt.ylabel('True')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plt.close()
+        image = torch.tensor(plt.imread(buf)).permute(2, 0, 1)[:3]  # [C, H, W]
+        return image.unsqueeze(0)  # [1, C, H, W]
 
-        feature_list.append(np.concatenate([[timestamps[-1]], features, [label]]))  # Add timestamp and label
+    cm_image = plot_confusion_matrix(cm, labels=[str(i) for i in range(n_classes)])
+    writer.add_image('Confusion_Matrix', cm_image[0], 0)
 
-    # Create column names
-    feature_columns = [f"{col}_t{t}" for t in range(window_size) for col in sensor_cols]
-    final_columns = [timestamp_col] + feature_columns + [label_col]
+    # save model
+    model_path = model_folder + model_name + "_" + timestamp + ".pkl"
+    joblib.dump(trained_model, model_path)
+    print(f"Trained model saved to {model_path}")
 
-    # Convert to DataFrame
-    feature_df = pd.DataFrame(feature_list, columns=final_columns)
+    meta_path = model_folder + model_name + "_" + timestamp + "_metadata.pkl"
+    joblib.dump(model_meta, meta_path)
 
-    return feature_df
+    # Close TensorBoard writer
+    writer.close()
 
-
-# Generate feature windows
-feature_windows_df = create_feature_windows_with_labels(df, window_size, overlap, label_col="event_label")
-
+    with open(model_folder + 'classification_report.txt', 'w') as f:
+        f.write("Confusion Matrix:\n")
+        f.write(str(cm) + "\n\n\n")
+        f.write("Classification Report:\n")
+        f.write(report)

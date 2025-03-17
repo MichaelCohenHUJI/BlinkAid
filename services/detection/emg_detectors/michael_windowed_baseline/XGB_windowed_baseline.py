@@ -55,7 +55,7 @@ class XGB_windowed_baseline(BaseEmgDetector):
             window = pd.DataFrame(pca_data.values.flatten().reshape(1, -1), columns=self._window_columns)
             prob = self._model.predict(window)
             pred = int(prob)
-            confidence = 1
+            confidence = self._model.predict_proba(window)[0][pred]
 
             # self._buffer.pop(0)
             self._buffer = self._buffer[self._step_size:] # todo

@@ -60,6 +60,6 @@ if __name__ == "__main__":
     detector = XGB_windowed_baseline()
 
     # <-- USE YOUR CSV HERE -->
-    data_path = PROJECT_ROOT / "data/raz_3-3/2025_03_03_1303_raz_blinks_no_metronome.csv"
+    data_path = PROJECT_ROOT / "data/yonatan_23-2/blinks.csv"
 
     asyncio.run(detection_demo(detector, data_path))

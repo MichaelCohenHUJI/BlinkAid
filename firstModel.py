@@ -51,7 +51,9 @@ def train_xgb(datadf, n_classes, model_path=None, existing_model=False):
     report = classification_report(y_test, y_pred, target_names=['Neutral (0)', 'Blink (1)','Gaze Left (2)',
                                                                  'Gaze Right (3)', 'Gaze Center (4)', 'Gaze Up (5)',
                                                                  'Gaze Down (6)'])
-
+    report_dict = classification_report(y_test, y_pred, target_names=['Neutral (0)', 'Blink (1)', 'Gaze Left (2)',
+                                                                 'Gaze Right (3)', 'Gaze Center (4)', 'Gaze Up (5)',
+                                                                 'Gaze Down (6)'], output_dict=True)
     print("Confusion Matrix:")
     print(cm)
     print("\nClassification Report:")
@@ -63,7 +65,7 @@ def train_xgb(datadf, n_classes, model_path=None, existing_model=False):
     xgb.plot_importance(model)
     plt.show()
 
-    return model, cm, report
+    return model, cm, report, report_dict
 
     # Visualize channel data using firstPlots.py
     # visualize_channels_with_misclassifications(datadf, y_test, y_pred)
