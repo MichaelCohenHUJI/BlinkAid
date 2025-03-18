@@ -391,5 +391,5 @@ if __name__ == "__main__":
     yon = 'data/yonatan_23-2'
     raz = 'data/raz_3-3'
     michael = 'data/michael_3-3'
-    filepath = os.path.join(yon, 'blinks.csv')
+    filepath = os.path.join(michael, '2025_03_03_1350_michael_blinks.csv')
     visualize_channels(filepath, '', True)
