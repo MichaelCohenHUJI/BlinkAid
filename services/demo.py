@@ -3,6 +3,7 @@ import logging
 import time
 from pathlib import Path
 
+from services.common.paths import PROJECT_ROOT
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.detection.emg_detectors.examples.blink_detector_cnn import BlinkDetectorCNN
 from services.detection.emg_detectors.examples.blink_detector_threshold_voting import BlinkDetectorThresholdVoting
@@ -13,8 +14,6 @@ from services.detection.emg_detectors.michael_windowed_baseline.XGB_windowed_bas
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-PROJECT_ROOT = Path(__file__).parent.parent
 
 
 async def detection_demo(detector: BaseEmgDetector, csv_path: Path):
