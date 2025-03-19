@@ -1,5 +1,6 @@
 import os
 from pca_ica_exploration import train_pca
+from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
 from windowing import create_windows
 import pandas as pd
 from firstModel import train_xgb
@@ -10,6 +11,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 import torch
+
+
 
 if __name__ == '__main__':
     ann_data = {
@@ -39,7 +42,7 @@ if __name__ == '__main__':
     df, pca_results, pca, scaler = train_pca(df, p_components)
 
     model_name = "raz_xg_windowed_stdized_" + str(p_components) + 'pc'
-    model_folder = "models/" + model_name + "_" + timestamp + "/"
+    model_folder = str(MICHAEL_DETECTOR_DIR) + "/models/" + model_name + "_" + timestamp + "/"
     os.makedirs(model_folder, exist_ok=True)
 
     # Initialize TensorBoard writer
@@ -59,8 +62,8 @@ if __name__ == '__main__':
     model_meta['pca_model_path'] = pca_model_path
 
     # create labeled windows from annotated samples
-    window_length = 0.3
-    overlap = 0.7
+    window_length = 0.3  # seconds
+    overlap = 0.7  # 0 - 1
     model_meta['window_length'] = window_length
     model_meta['overlap'] = overlap
     windows = create_windows(df, window_length, overlap)
