@@ -1,4 +1,5 @@
-import numpy as np
+import logging
+
 import pandas as pd
 import xgboost as xgb
 import joblib
@@ -9,16 +10,17 @@ from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.common.enums.detection_types import DetectionType
 from services.common.models.detection import DetectionModel
+from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
 
+logger = logging.getLogger(__name__)
 
-
-PROJ_DIR = '/home/michael/Desktop/BlinkAid/miniproject/'
 
 class XGB_windowed_baseline(BaseEmgDetector):
     def __init__(self,
-                 model_path=PROJ_DIR + "models/raz_xg_windowed_stdized_16pc_2025-03-12_20-53-06/raz_xg_windowed_stdized_16pc_2025-03-12_20-53-06.pkl",
+                 model_path=str(MICHAEL_DETECTOR_DIR) + "/models/raz_xg_windowed_stdized_16pc_2025-03-12_20-53-06/raz_xg_windowed_stdized_16pc_2025-03-12_20-53-06.pkl",
                  sample_rate=250,
                  **kwargs):
+        logger.info(f"🔍 Loading model from {model_path}...")
         super().__init__(**kwargs)
         self.sample_rate = sample_rate
         self._model_path = model_path
@@ -31,16 +33,17 @@ class XGB_windowed_baseline(BaseEmgDetector):
         self._window_overlap = 0  # 0 - 1
         self._step_size = math.ceil((1 - self._window_overlap) * self._window_size)
         self._total_steps = 0
-        self._scaler = joblib.load(PROJ_DIR + self._meta['scaler_path'])
-        self._pca_model = joblib.load(PROJ_DIR + self._meta['pca_model_path'])
+        self._scaler = joblib.load(str(MICHAEL_DETECTOR_DIR) + "/" + self._meta['scaler_path'])
+        self._pca_model = joblib.load(str(MICHAEL_DETECTOR_DIR) + "/" + self._meta['pca_model_path'])
         self._pca_columns = [f'PC{i + 1}' for i in range(self._pca_model.n_components)]
         self._window_columns = [f"{col}_t{t}" for t in range(self._window_size) for col in self._pca_columns]
         self._classes = ['neutral', DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
                          DetectionType.GAZE_CENTER, DetectionType.GAZE_UP, DetectionType.GAZE_DOWN]
-        self._data_cols = [f"channel_{i+1}" for i in range(16)]
+        self._data_cols = [f"channel_{i + 1}" for i in range(16)]
         self._last_detection_time = None
         self._cooldown = 0.2
         self._last_pred = None
+        logger.info(f"🔍 Model loaded successfully.")
 
     def detect(self, emg_data: EmgModel) -> Optional[dict]:
 
@@ -58,11 +61,11 @@ class XGB_windowed_baseline(BaseEmgDetector):
             confidence = self._model.predict_proba(window)[0][pred]
 
             # self._buffer.pop(0)
-            self._buffer = self._buffer[self._step_size:] # todo
+            self._buffer = self._buffer[self._step_size:]  # todo
 
             if pred != 0:
                 if self._last_detection_time is not None:
-                    if self._last_detection_time + pd.Timedelta(seconds=self._cooldown) > emg_data.timestamp\
+                    if self._last_detection_time + pd.Timedelta(seconds=self._cooldown) > emg_data.timestamp \
                             and pred == self._last_pred:
                         return None
                 detection_time = emg_data.timestamp
@@ -79,11 +82,3 @@ class XGB_windowed_baseline(BaseEmgDetector):
                                       metadata=metadata)
             else:
                 return None
-
-
-
-
-
-
-
-
