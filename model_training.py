@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 import torch
+from tqdm import tqdm
 
 
 
@@ -23,24 +24,57 @@ if __name__ == '__main__':
                 'annotated_2025_03_03_1322_raz_up_down.csv'],
 
         'yon': ['annotated_blinks.csv',
-                'annotated_eye gaze left right 1.csv']
+                'annotated_eye gaze left right 1.csv',
+                'annotated_eye gaze left right 2.csv',
+                'annotated_eye movements up down.csv'],
+
+        'mich': ['annotated_2025_03_03_1350_michael_blinks.csv',
+                 'annotated_2025_03_03_1354_michael_left_right.csv',
+                 'annotated_2025_03_03_1359_michael_up_down.csv']
     }
-    folder_paths = {'raz': 'data/raz_3-3/annotated/', 'yon': 'data/yonatan_23-2/annotated/'}
-    subj = 'raz'
-    model_name = "raz_xg_windowed_stdized_16pc"
+
+    folder_paths = {'raz': 'data/raz_3-3/annotated/', 'yon': 'data/yonatan_23-2/annotated/', 'mich': 'data/michael_3-3/annotated/'}
+    # subj = 'raz'
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     model_meta = {}
 
     # collect data from all files
-    ann_data_paths = [folder_paths[subj] + f for f in ann_data[subj]]
-    df = pd.concat((pd.read_csv(f) for f in ann_data_paths), ignore_index=True)
+    # ann_data_paths = [folder_paths[subj] + f for f in ann_data[subj]]
+    # df = pd.concat((pd.read_csv(f) for f in ann_data_paths), ignore_index=True)
+    train_dfs = []
+    test_dfs = []
+    split_ratio = 0.1
+    for subj in ann_data:
+        # if subj != 'raz':
+        #     continue
+        ann_data_paths = [folder_paths[subj] + f for f in ann_data[subj]]
+        for file_path in ann_data_paths:
+            df = pd.read_csv(file_path)
+            split_idx = int(len(df) * (1 - split_ratio))
+            train_dfs.append(df.iloc[:split_idx])
+            test_dfs.append(df.iloc[split_idx:])
 
-    # run pca on the concatenated data
+
+    # train pca on the train data
+    df_all = pd.concat(train_dfs, ignore_index=True)
     p_components = 3
     model_meta['p_components'] = p_components
-    df, pca_results, pca, scaler = train_pca(df, p_components)
+    df_all_pca, pca_results, pca, scaler = train_pca(df_all, p_components)
+    # apply pca to whole data
+    pca_cols = [f'PC{i+1}' for i in range(p_components)]
+    cols = ['timestamp'] + pca_cols + ['label']
+    def apply_pca(df):
+        scaled = pd.DataFrame(scaler.transform(df.drop(columns=['timestamp', 'label'])), columns=df.columns[1:-1])
+        pcaed = pd.DataFrame(pca.transform(scaled), columns=pca_cols)
+        pcaed['timestamp'] = df['timestamp'].values
+        pcaed['label'] = df['label'].values
+        return pcaed[cols]
+    train_dfs_pca = [apply_pca(df) for df in train_dfs]
+    test_dfs_pca = [apply_pca(df) for df in test_dfs]
 
+
+    # create model folder
     model_name = "raz_xg_windowed_stdized_" + str(p_components) + 'pc'
     model_folder = str(MICHAEL_DETECTOR_DIR) + "/models/" + model_name + "_" + timestamp + "/"
     os.makedirs(model_folder, exist_ok=True)
@@ -63,16 +97,25 @@ if __name__ == '__main__':
 
     # create labeled windows from annotated samples
     window_length = 0.3  # seconds
-    overlap = 0.7  # 0 - 1
+    overlap = 0.99  # 0 - 1
     model_meta['window_length'] = window_length
     model_meta['overlap'] = overlap
-    windows = create_windows(df, window_length, overlap)
+    train_windows = []
+    test_windows = []
+    for df in tqdm(train_dfs_pca):
+        windows = create_windows(df, window_length, overlap)
+        train_windows.append(windows)
+    for df in tqdm(test_dfs_pca):
+        windows = create_windows(df, window_length, overlap)
+        test_windows.append(windows)
+    train_windows_df = pd.concat(train_windows, ignore_index=True)
+    test_windows_df = pd.concat(test_windows, ignore_index=True)
 
     # train model
     existing_model = 0
     n_classes = 7
     model_meta['n_classes'] = n_classes
-    trained_model, cm, report, report_dict = train_xgb(windows, n_classes)
+    trained_model, cm, report, report_dict = train_xgb(train_windows_df, test_windows_df, n_classes)
 
     # Log classification metrics to TensorBoard
     for label, metrics in report_dict.items():

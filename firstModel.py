@@ -9,22 +9,21 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 
 
 
-def train_xgb(datadf, n_classes, model_path=None, existing_model=False):
+def train_xgb(traindf, testdf, n_classes, model_path=None, existing_model=False):
     """Processes annotated time-series data for point-wise classification of blinks."""
 
     # Ensure timestamp consistency
     # df['timestamp'] = pd.to_datetime(df['date'] + ' ' + df['time'])
     # df.drop(columns=['date', 'time'], inplace=True)
 
-    datadf = datadf.sample(frac=1).reset_index(drop=True)
+    traindf = traindf.sample(frac=1).reset_index(drop=True)
+    testdf = testdf.sample(frac=1).reset_index(drop=True)
     # Separate features and labels
-    X = datadf.drop(columns=['timestamp', 'label'])
-    y = datadf['label']
+    X_train = traindf.drop(columns=['timestamp', 'label'])
+    y_train = traindf['label']
+    X_test = testdf.drop(columns=['timestamp', 'label'])
+    y_test = testdf['label']
 
-    # Split data into training (first 80%) and test (last 20%)
-    split_index = int(len(datadf) * 0.8)
-    X_train, X_test = X.iloc[:split_index], X.iloc[split_index:]
-    y_train, y_test = y.iloc[:split_index], y.iloc[split_index:]
 
     # Train XGBoost model
     if existing_model:

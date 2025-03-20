@@ -56,12 +56,11 @@ class XGB_windowed_baseline(BaseEmgDetector):
             scaled_data = pd.DataFrame(self._scaler.transform(data), columns=self._data_cols)
             pca_data = pd.DataFrame(self._pca_model.transform(scaled_data), columns=self._pca_columns)
             window = pd.DataFrame(pca_data.values.flatten().reshape(1, -1), columns=self._window_columns)
-            prob = self._model.predict(window)
-            pred = int(prob)
+            pred = self._model.predict(window)
             confidence = self._model.predict_proba(window)[0][pred]
 
             # self._buffer.pop(0)
-            self._buffer = self._buffer[self._step_size:]  # todo
+            self._buffer = self._buffer[self._step_size:]  # todo talk to raz about step size and overlap
 
             if pred != 0:
                 if self._last_detection_time is not None:

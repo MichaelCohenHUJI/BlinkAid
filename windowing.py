@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import mode
 import pandas as pd
 import math
+from services.detection.emg_detectors.michael_windowed_baseline.labels import LABELS_TO_CLASSES
 
 
 def create_windows(df, window_length, overlap=0.5, inc_label=True, sample_rate=250):
@@ -34,6 +35,16 @@ def create_windows(df, window_length, overlap=0.5, inc_label=True, sample_rate=2
     # Create list of windows
     for i in range(0, num_samples - window_size, step_size):
         window = df.iloc[i:i + window_size]
+        # Assign a label (majority vote)
+        window_label = window[label_col].mode().iloc[0] if not window[label_col].empty else None
+
+        # sub-sampling majority class:
+        subsamp_ratio = 0.99
+        subsamp_prob = 0.75
+        if window_label == 0:
+            frac = (window[label_col] == window_label).sum() / len(window[label_col])
+            if frac < subsamp_ratio or np.random.rand() < subsamp_prob:
+                continue
 
         # Store timestamp of the first row in the window
         timestamp = window[timestamps_col].iloc[0]
@@ -43,10 +54,7 @@ def create_windows(df, window_length, overlap=0.5, inc_label=True, sample_rate=2
         windows_list.append(window[sensor_cols].values.flatten())
 
         if inc_label:
-            # Assign a label (majority vote)
-            window_label = mode(window[label_col].values, axis=None, keepdims=True).mode[0] if not window[
-                label_col].empty else 0
-            labels.append(int(window_label))  # Ensure it's an integer
+            labels.append(window_label)
 
     # Convert lists to NumPy arrays for efficient DataFrame construction
     timestamps = np.array(timestamps).reshape(-1, 1)

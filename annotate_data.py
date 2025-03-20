@@ -1,5 +1,5 @@
 import pandas as pd
-
+import os
 
 def annotate_data(file_path, labels_file, output_path):
     '''
@@ -17,7 +17,7 @@ def annotate_data(file_path, labels_file, output_path):
         raise ValueError("Dataset must have a 'timestamp' column.")
 
     # Convert timestamp column to datetime and extract date and time separately
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df['date'] = df['timestamp'].dt.date  # Extract date
     df['time'] = df['timestamp'].dt.strftime('%H:%M:%S.%f')  # Extract time with milliseconds
     # df.drop(columns=['timestamp'], inplace=True)  # Remove original timestamp column
@@ -71,10 +71,16 @@ if __name__ == '__main__':
                 ('2025_03_03_1303_raz_blinks_no_metronome.csv', 'raz_3-3_blinks_ts.csv')],
 
         'yon': [('blinks.csv', 'ts_blinks_yon23-2.csv'),
-                ('eye gaze left right 1.csv', 'ts_eg1_yon23-2.csv')]
+                ('eye gaze left right 1.csv', 'ts_eg1_yon23-2.csv'),
+                ('eye gaze left right 2.csv', 'ts_eg2_yon23-2.csv'),
+                ('eye movements up down.csv', 'ts_ud_yon23-2.csv')],
+
+        'mich': [('2025_03_03_1350_michael_blinks.csv', 'michael_3-3_blinks_ts.csv'),
+                 ('2025_03_03_1354_michael_left_right.csv', 'michael_3-3_lr_ts.csv'),
+                 ('2025_03_03_1359_michael_up_down.csv', 'michael_3-3_ud_ts.csv')]
     }
 
-    folder_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/'}
+    folder_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/', 'mich': 'data/michael_3-3/'}
 
     annotated_path = 'annotated/'
     for subj in data_ann_pairs.keys():
@@ -82,4 +88,6 @@ if __name__ == '__main__':
             data_file_name, label_file = pair
             folder_path = folder_paths[subj]
             output_name = 'annotated_' + data_file_name
-            annotate_data(folder_path + data_file_name, folder_path + label_file, folder_path + annotated_path + output_name)
+            out_path = folder_path + annotated_path + output_name
+            if not os.path.exists(out_path):
+                annotate_data(folder_path + data_file_name, folder_path + label_file, out_path)
