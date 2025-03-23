@@ -38,8 +38,6 @@ def train_xgb(traindf, testdf, n_classes, model_path=None, existing_model=False)
         )
         model.fit(X_train, y_train)
 
-
-
     # Predict on test set
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)

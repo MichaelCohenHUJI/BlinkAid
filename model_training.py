@@ -44,10 +44,12 @@ if __name__ == '__main__':
     # df = pd.concat((pd.read_csv(f) for f in ann_data_paths), ignore_index=True)
     train_dfs = []
     test_dfs = []
-    split_ratio = 0.1
+    split_ratio = 0.2
+    trained_on = ''
     for subj in ann_data:
         # if subj != 'raz':
         #     continue
+        trained_on += subj + '_'
         ann_data_paths = [folder_paths[subj] + f for f in ann_data[subj]]
         for file_path in ann_data_paths:
             df = pd.read_csv(file_path)
@@ -75,7 +77,8 @@ if __name__ == '__main__':
 
 
     # create model folder
-    model_name = "raz_xg_windowed_stdized_" + str(p_components) + 'pc'
+    data_frac = str(int(split_ratio * 100)) + '%data_'
+    model_name = trained_on + data_frac + "xg_windowed_stdized_" + str(p_components) + 'pc'
     model_folder = str(MICHAEL_DETECTOR_DIR) + "/models/" + model_name + "_" + timestamp + "/"
     os.makedirs(model_folder, exist_ok=True)
 

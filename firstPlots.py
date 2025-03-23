@@ -390,6 +390,6 @@ if __name__ == "__main__":
     # Replace with your file path
     yon = 'data/yonatan_23-2'
     raz = 'data/raz_3-3'
-    michael = 'data/michael_3-3'
-    filepath = os.path.join(raz, '2025_03_03_1336_raz_eyebrows_raise.csv')
+    mich = 'data/michael_3-3'
+    filepath = os.path.join(yon, 'raise eyebrows and hold.csv')
     visualize_channels(filepath, '', True)
