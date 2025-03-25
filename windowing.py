@@ -7,7 +7,7 @@ from services.detection.emg_detectors.michael_windowed_baseline.labels import LA
 
 def create_windows(df, window_length, overlap=0.5, inc_label=True, sample_rate=250):
     """
-    Converts sliding windows into a tabular format for ML models like XGBoost or LightGBM.
+    Creates windows from a dataframe .
 
     Parameters:
     - df (pd.DataFrame): DataFrame where the first column is 'timestamp' and the rest are sensor values.
