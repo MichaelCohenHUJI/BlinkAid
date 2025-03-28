@@ -64,49 +64,6 @@ def train_xgb(traindf, testdf, n_classes, model_path=None, existing_model=False)
 
     return model, cm, report, report_dict
 
-    # Visualize channel data using firstPlots.py
-    # visualize_channels_with_misclassifications(datadf, y_test, y_pred)
-
-
-def visualize_channels_with_misclassifications(df, y_test, y_pred):
-    """Visualizes channels and highlights misclassified points."""
-    # df['timestamp'] = pd.to_datetime(df['date'] + ' ' + df['time'])
-    channels = [col for col in df.columns[1:-1]]
-
-    fig = go.Figure()
-
-    # Plot all channels
-    for channel in channels:
-        fig.add_trace(go.Scatter(
-            x=df['timestamp'],
-            y=df[channel],
-            mode='lines',
-            name=channel,
-            opacity=0.5
-        ))
-
-    # Highlight misclassified points
-    misclassified = y_test.to_numpy() != y_pred
-    misclassified_timestamps = df['timestamp'].iloc[-len(y_test):].iloc[misclassified]
-    misclassified_values = df[channels[0]].iloc[-len(y_test):].iloc[misclassified]  # Use first channel for y values
-
-    fig.add_trace(go.Scatter(
-        x=misclassified_timestamps,
-        y=misclassified_values,
-        mode='markers',
-        marker=dict(color='red', size=8, symbol='x'),
-        name='Misclassified'
-    ))
-
-    fig.update_layout(
-        title='Channel Data with Misclassified Points Highlighted',
-        xaxis_title='Time',
-        yaxis_title='Sensor Values',
-        hovermode='x unified'
-    )
-
-    fig.show()
-
 
 if __name__ == '__main__':
     data_files = {
