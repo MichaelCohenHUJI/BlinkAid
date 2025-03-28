@@ -1,11 +1,9 @@
 import logging
-
 import pandas as pd
 import xgboost as xgb
 import joblib
 from typing import Optional
 import math
-
 from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.common.enums.detection_types import DetectionType
@@ -51,6 +49,7 @@ class XGB_windowed_baseline(BaseEmgDetector):
                          DetectionType.GAZE_CENTER, DetectionType.GAZE_UP, DetectionType.GAZE_DOWN]
 
         logger.info(f"🔍 Model loaded successfully.")
+
 
     def detect(self, emg_data: EmgModel) -> Optional[dict]:
 

@@ -3,7 +3,7 @@ from pca_ica_exploration import train_pca
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
 from windowing import create_windows
 import pandas as pd
-from firstModel import train_xgb
+from trainXGB import train_xgb
 from datetime import datetime
 import joblib
 from torch.utils.tensorboard import SummaryWriter
@@ -80,11 +80,13 @@ if __name__ == '__main__':
     # train model
     existing_model = 0
     n_classes = 7
-    trained_model, cm, report, report_dict = train_xgb(train_windows_df, test_windows_df, n_classes)
+    classes_strings = ['Neutral (0)', 'Blink (1)','Gaze Left (2)', 'Gaze Right (3)', 'Gaze Center (4)',
+                       'Gaze Up (5)', 'Gaze Down (6)']
+    trained_model, cm, report, report_dict = train_xgb(train_windows_df, test_windows_df, n_classes, classes_strings)
 
     """Stage 5"""
     # create model folder
-    data_frac = str(int(split_ratio * 100)) + '%data_'
+    data_frac = str(int((1 - split_ratio) * 100)) + '%data_'
     model_name = trained_on + data_frac + "xg_windowed_stdized_" + str(p_components) + 'pc'
     model_folder = str(MICHAEL_DETECTOR_DIR) + "/models/" + model_name + "_" + timestamp + "/"
     os.makedirs(model_folder, exist_ok=True)
