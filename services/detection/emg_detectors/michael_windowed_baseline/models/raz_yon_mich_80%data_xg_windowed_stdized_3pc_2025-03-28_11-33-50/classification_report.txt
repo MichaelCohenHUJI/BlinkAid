@@ -1,0 +1,24 @@
+Confusion Matrix:
+[[7613   11    1   14   19   55   50]
+ [  36 5473    4   24    0   62   47]
+ [ 105    0  547    1  116    0    0]
+ [  87    0   52 1047   75   40    0]
+ [ 180    0  144   23 1975    6   15]
+ [ 196   35    0    0   15 2138   29]
+ [ 159    0    0    0   12    3 2207]]
+
+
+Classification Report:
+                 precision    recall  f1-score   support
+
+    Neutral (0)       0.91      0.98      0.94      7763
+      Blink (1)       0.99      0.97      0.98      5646
+  Gaze Left (2)       0.73      0.71      0.72       769
+ Gaze Right (3)       0.94      0.80      0.87      1301
+Gaze Center (4)       0.89      0.84      0.87      2343
+    Gaze Up (5)       0.93      0.89      0.91      2413
+  Gaze Down (6)       0.94      0.93      0.93      2381
+
+       accuracy                           0.93     22616
+      macro avg       0.91      0.87      0.89     22616
+   weighted avg       0.93      0.93      0.93     22616

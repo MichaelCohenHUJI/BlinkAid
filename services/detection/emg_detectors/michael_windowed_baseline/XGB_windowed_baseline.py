@@ -51,6 +51,9 @@ class XGB_windowed_baseline(BaseEmgDetector):
         logger.info(f"🔍 Model loaded successfully.")
 
 
+    def fit(self):
+        pass
+
     def detect(self, emg_data: EmgModel) -> Optional[dict]:
 
         self._buffer.append(emg_data)

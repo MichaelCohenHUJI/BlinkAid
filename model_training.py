@@ -12,7 +12,7 @@ import seaborn as sns
 import io
 import torch
 from tqdm import tqdm
-from annotated_data_paths import ann_data, folder_paths
+from annotated_data_paths import DATA
 
 
 if __name__ == '__main__':
@@ -33,11 +33,11 @@ if __name__ == '__main__':
     test_dfs = []
     split_ratio = 0.2
     trained_on = ''
-    for subj in ann_data:
+    for subj in DATA:
         # if subj != 'raz':
         #     continue
         trained_on += subj + '_'
-        ann_data_paths = [folder_paths[subj] + f for f in ann_data[subj]]
+        ann_data_paths = [p for p in DATA[subj]]
         for file_path in ann_data_paths:
             df = pd.read_csv(file_path)
             split_idx = int(len(df) * (1 - split_ratio))
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     # train model
     existing_model = 0
     n_classes = 7
-    classes_strings = ['Neutral (0)', 'Blink (1)','Gaze Left (2)', 'Gaze Right (3)', 'Gaze Center (4)',
+    classes_strings = ['Neutral (0)', 'Blink (1)', 'Gaze Left (2)', 'Gaze Right (3)', 'Gaze Center (4)',
                        'Gaze Up (5)', 'Gaze Down (6)']
     trained_model, cm, report, report_dict = train_xgb(train_windows_df, test_windows_df, n_classes, classes_strings)
 

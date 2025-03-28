@@ -51,7 +51,14 @@ def apply_pca(df: pd.DataFrame, scaler: StandardScaler, pca: PCA):
     df_pca = pd.DataFrame(pca_result, columns=pca_columns)
 
 
-
+def apply_train_pca(df: pd.DataFrame, scaler: StandardScaler, pca: PCA):
+    pca_columns = [f'PC{i + 1}' for i in range(pca.n_components_)]
+    scaled = pd.DataFrame(scaler.transform(df.drop(columns=['timestamp', 'label'])), columns=df.columns[1:-1])
+    pcaed = pd.DataFrame(pca.transform(scaled), columns=pca_columns)
+    pcaed['timestamp'] = df['timestamp'].values
+    pcaed['label'] = df['label'].values
+    cols = ['timestamp'] + pca_columns + ['label']
+    return pcaed[cols]
 
 #%%
 def run_ica(df, n=8, do_pca=True):
