@@ -1,0 +1,18 @@
+Confusion Matrix:
+None
+
+
+Classification Report:
+                               precision    recall  f1-score   support
+
+                  neutral (0)       0.92      0.98      0.95      7757
+      DetectionType.BLINK (1)       0.99      0.97      0.98      5646
+  DetectionType.GAZE_LEFT (2)       0.74      0.71      0.72       769
+ DetectionType.GAZE_RIGHT (3)       0.92      0.79      0.85      1301
+DetectionType.GAZE_CENTER (4)       0.89      0.85      0.87      2343
+    DetectionType.GAZE_UP (5)       0.92      0.89      0.90      2413
+  DetectionType.GAZE_DOWN (6)       0.94      0.94      0.94      2381
+
+                     accuracy                           0.93     22610
+                    macro avg       0.90      0.88      0.89     22610
+                 weighted avg       0.93      0.93      0.93     22610

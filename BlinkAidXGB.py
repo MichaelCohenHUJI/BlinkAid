@@ -1,25 +1,17 @@
+import joblib
 from xgboost import XGBClassifier
 import logging
 import pandas as pd
 import xgboost as xgb
-import joblib
 from typing import Optional
 import math
 from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
-from services.common.enums.detection_types import DetectionType
 from services.common.models.detection import DetectionModel
-from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
-from datetime import datetime
 from pca_ica_exploration import train_pca, apply_train_pca
 from tqdm import tqdm
 from windowing import create_windows
-from torch.utils.tensorboard import SummaryWriter
-import matplotlib.pyplot as plt
-import seaborn as sns
-import io
-import torch
-import os
+from training_helpers import collect_data
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 logger = logging.getLogger(__name__)
@@ -27,33 +19,43 @@ logger = logging.getLogger(__name__)
 
 class BlinkAidXGB(BaseEmgDetector):
     def __init__(self,
-                 model_path=str(MICHAEL_DETECTOR_DIR) + "/models/raz_xg_windowed_stdized_16pc_2025-03-12_20-53-06/raz_xg_windowed_stdized_16pc_2025-03-12_20-53-06.pkl",
+                 classes,
                  sample_rate=250,
-                 n_classes=7,
                  training_window_overlap=0.99,  # 0 - 1, for training and validation
                  inf_window_overlap=0,  # 0 - 1, for inference data only
                  window_length=0.3,  # seconds
-                 cooldown=0.2,  # cooldown time between 2 identical predictions
-                 num_channels=16,  # same as in training
+                 cooldown=0.4,  # seconds, cooldown time between 2 identical predictions
+                 num_channels=16,
                  p_components=3,
                  split_ratio=0.2,  # 0 - 1, fraction of validation set out of the input data
                  **kwargs):
-        logger.info(f"🔍 Loading model from {model_path}...")
+        """
+        Initialize XGBoost model for BlinkAid datasets
+        :param classes: list of string representations of the classes
+        :param model_path:
+        :param sample_rate: data sample rate
+        :param training_window_overlap: 0 - 1, consecutive windows overlap, for training and validation
+        :param inf_window_overlap: 0 - 1, consecutive windows overlap, for inference data only
+        :param window_length: seconds
+        :param cooldown: seconds, cooldown time between 2 identical predictions
+        :param num_channels: number of channels in the sampled data
+        :param p_components: number of pca components to train with
+        :param split_ratio: 0 - 1, fraction of validation set out of the input data
+        :param kwargs:
+        """
         super().__init__(**kwargs)
 
-        # save model path and metadata
-        self._model_path = None
-        self._meta_path = None
-        # self._model: xgb.XGBClassifier = joblib.load(self._model_path)
-        # self._meta = joblib.load(self._meta_path)
-        self._meta = None
-        # self._scaler = joblib.load(str(MICHAEL_DETECTOR_DIR) + "/" + self._meta['scaler_path'])
         self._scaler = None
-        # self._pca_model = joblib.load(str(MICHAEL_DETECTOR_DIR) + "/" + self._meta['pca_model_path'])
         self._pca_model = None
 
         # initialize needed params
-        self._n_classes = n_classes
+        self._model: XGBClassifier = None
+        self._fitted = False
+        self._n_classes = len(classes)
+        self._classes = classes
+        self._classes_strings = []
+        for i, c in enumerate(self._classes):
+            self._classes_strings.append(c.value + f' ({i})')
         self._window_length = window_length
         self._split_ratio = split_ratio
         self._cooldown = cooldown
@@ -64,15 +66,20 @@ class BlinkAidXGB(BaseEmgDetector):
         self._last_detection_time = None
         self._last_pred = None
         self._buffer: list[EmgModel] = []
+        self._confusion_matrix = None  # last training confusion matrix
+        self._validation_report = None  # last validation report
+        self._validation_report_dict = None  # last validation report dictionary
+        self._accuracy_score = None  # last accuracy score
 
         # initialize data columns & class names
         self._data_cols = [f"channel_{i + 1}" for i in range(num_channels)]
         self._pca_columns = [f'PC{i + 1}' for i in range(self._p_components)]
         self._window_columns = [f"{col}_t{t}" for t in range(self._window_size) for col in self._pca_columns]
-        self._classes = ['neutral', DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
-                         DetectionType.GAZE_CENTER, DetectionType.GAZE_UP, DetectionType.GAZE_DOWN]
 
         logger.info(f"🔍 Model loaded successfully.")
+
+    def is_fitted(self) -> bool:
+        return self._fitted
 
 
     def fit(self, data_paths_dict, subj_list):
@@ -85,28 +92,22 @@ class BlinkAidXGB(BaseEmgDetector):
         4. training xgboost model on train set, and returning a performance report on test set
         5. saving the models mentioned above, the performance report and creates a tensorboard report for the trained model
         """
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
         """Stage 1"""
         # collect data from all files
-        from training_helpers import collect_data
         train_dfs, val_dfs = collect_data(data_paths_dict, subj_list, self._split_ratio)
-        trained_on = ''
-        for subj in subj_list:
-            trained_on += subj + '_'
 
         """Stage 2"""
         # train standardization and pca models on the train data
         df_all_train = pd.concat(train_dfs, ignore_index=True)
         df_all_train_pca, pca_results, pca, scaler = train_pca(df_all_train, self._p_components)
+        self._scaler = scaler
+        self._pca_model = pca
         # apply pca to whole data
-        train_dfs_pca = [apply_train_pca(df, pca, scaler) for df in train_dfs]
-        test_dfs_pca = [apply_train_pca(df, pca, scaler) for df in val_dfs]
+        train_dfs_pca = [apply_train_pca(df, scaler, pca) for df in train_dfs]
+        test_dfs_pca = [apply_train_pca(df, scaler, pca) for df in val_dfs]
 
         """Stage 3"""
         # create labeled windows from annotated samples
-        # window_length = 0.3  # seconds
-        # overlap = 0.99  # 0 - 1
         train_windows = []
         test_windows = []
         for df in tqdm(train_dfs_pca):
@@ -118,14 +119,9 @@ class BlinkAidXGB(BaseEmgDetector):
         train_windows_df = pd.concat(train_windows, ignore_index=True)
         test_windows_df = pd.concat(test_windows, ignore_index=True)
 
-        """Stage 4"""   # todo continue refactoring
+        """Stage 4"""
         # train model
-        existing_model = 0
-        n_classes = 7
-        classes_strings = ['Neutral (0)', 'Blink (1)', 'Gaze Left (2)', 'Gaze Right (3)', 'Gaze Center (4)',
-                           'Gaze Up (5)', 'Gaze Down (6)']
-        # trained_model, cm, report, report_dict = train_xgb(train_windows_df, test_windows_df, n_classes,
-        #                                                    classes_strings)
+        # shuffle train & validation sets
         traindf = train_windows_df.sample(frac=1).reset_index(drop=True)
         testdf = test_windows_df.sample(frac=1).reset_index(drop=True)
         # Separate features and labels
@@ -138,97 +134,101 @@ class BlinkAidXGB(BaseEmgDetector):
         model = xgb.XGBClassifier(
             eval_metric='mlogloss',  # Multi-class log loss
             objective='multi:softprob',  # Softmax output
-            num_class=n_classes,  # Replace N with the number of classes
+            num_class=self._n_classes,  # Replace N with the number of classes
+            n_jobs=-1,
         )
         model.fit(X_train, y_train)
 
         # Predict on test set
         y_pred = model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
+        self._accuracy_score = accuracy
         print(f"Model Accuracy: {accuracy:.4f}")
 
         # Compute confusion matrix and classification report
         cm = confusion_matrix(y_test, y_pred)
-        report = classification_report(y_test, y_pred, target_names=classes_strings)
-        report_dict = classification_report(y_test, y_pred, target_names=classes_strings, output_dict=True)
+        self._confusion_matrix = cm
+        report = classification_report(y_test, y_pred, target_names=self._classes_strings)
+        self._validation_report = report
+        report_dict = classification_report(y_test, y_pred, target_names=self._classes_strings, output_dict=True)
+        self._validation_report_dict = report_dict
         print("Confusion Matrix:")
         print(cm)
         print("\nClassification Report:")
         print(report)
 
-        """Stage 5"""
-        # create model folder
-        data_frac = str(int((1 - self._split_ratio) * 100)) + '%data_'
-        model_name = trained_on + data_frac + "xg_windowed_stdized_" + str(self._p_components) + 'pc'
-        model_folder = str(MICHAEL_DETECTOR_DIR) + "/models/" + model_name + "_" + timestamp + "/"
-        os.makedirs(model_folder, exist_ok=True)
+        self._model = model
+        self._fitted = True
+        return self
 
-        # save models training report
-        with open(model_folder + 'classification_report.txt', 'w') as f:
-            f.write("Confusion Matrix:\n")
-            f.write(str(cm) + "\n\n\n")
-            f.write("Classification Report:\n")
-            f.write(report)
 
-        # save pca and scaler data
-        scaler_path = model_folder + model_name + "_" + timestamp + "_scaler.pkl"
-        joblib.dump(scaler, scaler_path)
-        pca_model_path = model_folder + model_name + "_" + timestamp + "_pca_model.pkl"
-        joblib.dump(pca, pca_model_path)
+    def get_performance_report(self):
+        if not self._fitted:
+            raise ValueError("Model was not fitted yet.")
+        return self._accuracy_score, self._confusion_matrix, self._validation_report, self._validation_report_dict
 
-        # save model metadata
-        model_meta = {}
-        model_meta['scaler_path'] = scaler_path
-        model_meta['p_components'] = p_components
-        model_meta['pca_model_path'] = pca_model_path
-        model_meta['window_length'] = window_length
-        model_meta['overlap'] = overlap
-        model_meta['n_classes'] = n_classes
+    def continue_fit(self, data_paths_dict, subj_list):  # todo test
+        """
 
-        # save model
-        model_path = model_folder + model_name + "_" + timestamp + ".pkl"
-        joblib.dump(model, model_path)
-        print(f"Trained model saved to {model_path}")
+        :param data_paths_dict:
+        :param subj_list:
+        :return:
+        """
+        if not self._fitted:
+            raise ValueError("Cannot continue training. The model hasn't been trained yet.")
 
-        meta_path = model_folder + model_name + "_" + timestamp + "_metadata.pkl"
-        joblib.dump(model_meta, meta_path)
+        """Stage 1"""
+        # collect data from all files
+        train_dfs, val_dfs = collect_data(data_paths_dict, subj_list, self._split_ratio)
 
-        # 🔥 Add Confusion Matrix Heatmap
-        def plot_confusion_matrix(cm, labels):
-            plt.figure(figsize=(8, 6))
-            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=labels, yticklabels=labels)
-            plt.xlabel('Predicted')
-            plt.ylabel('True')
-            buf = io.BytesIO()
-            plt.savefig(buf, format='png')
-            buf.seek(0)
-            plt.close()
-            image = torch.tensor(plt.imread(buf)).permute(2, 0, 1)[:3]  # [C, H, W]
-            return image.unsqueeze(0)  # [1, C, H, W]
+        """Stage 2"""
+        # apply pca to whole data
+        train_dfs_pca = [apply_train_pca(df, self._scaler, self._pca_model) for df in train_dfs]
+        test_dfs_pca = [apply_train_pca(df, self._scaler, self._pca_model) for df in val_dfs]
 
-        # Initialize TensorBoard writer
-        tb_log_dir = os.path.join(model_folder, 'tensorboard')
-        writer = SummaryWriter(log_dir=tb_log_dir)
+        """Stage 3"""
+        # create labeled windows from annotated samples
+        train_windows = []
+        test_windows = []
+        for df in tqdm(train_dfs_pca):
+            windows = create_windows(df, self._window_length, self._training_window_overlap)
+            train_windows.append(windows)
+        for df in tqdm(test_dfs_pca):
+            windows = create_windows(df, self._window_length, self._training_window_overlap)
+            test_windows.append(windows)
+        train_windows_df = pd.concat(train_windows, ignore_index=True)
+        test_windows_df = pd.concat(test_windows, ignore_index=True)
 
-        # Log PCA explained variance to TensorBoard
-        for i, var in enumerate(pca.explained_variance_ratio_):
-            writer.add_scalar('PCA/Explained_Variance_Ratio_PC' + str(i + 1), var, 0)
+        """Stage 4"""
+        # shuffle train & validation sets
+        traindf = train_windows_df.sample(frac=1).reset_index(drop=True)
+        testdf = test_windows_df.sample(frac=1).reset_index(drop=True)
+        # Separate features and labels
+        X_train = traindf.drop(columns=['timestamp', 'label'])
+        y_train = traindf['label']
+        X_test = testdf.drop(columns=['timestamp', 'label'])
+        y_test = testdf['label']
 
-        # Log classification metrics to TensorBoard
-        for label, metrics in report_dict.items():
-            if isinstance(metrics, dict):
-                writer.add_scalar(f'Classification_Report/{label}_precision', metrics['precision'], 0)
-                writer.add_scalar(f'Classification_Report/{label}_recall', metrics['recall'], 0)
-                writer.add_scalar(f'Classification_Report/{label}_f1-score', metrics['f1-score'], 0)
-            else:
-                writer.add_scalar('Classification_Report/accuracy', report_dict['accuracy'], 0)
+        # train model
+        self._model.fit(X_train, y_train, xgb_model=self._model.get_booster())
 
-        cm_image = plot_confusion_matrix(cm, labels=[str(i) for i in range(n_classes)])
-        writer.add_image('Confusion_Matrix', cm_image[0], 0)
+        # Predict on test set
+        y_pred = self._model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        self._accuracy_score = accuracy
+        print(f"Model Accuracy: {accuracy:.4f}")
 
-        # Close TensorBoard writer
-        writer.close()
-
+        # Compute confusion matrix and classification report
+        cm = confusion_matrix(y_test, y_pred)
+        self._confusion_matrix = cm
+        report = classification_report(y_test, y_pred, target_names=self._classes_strings)
+        self._validation_report = report
+        report_dict = classification_report(y_test, y_pred, target_names=self._classes_strings, output_dict=True)
+        self._validation_report_dict = report_dict
+        print("Confusion Matrix:")
+        print(cm)
+        print("\nClassification Report:")
+        print(report)
         return self
 
     def detect(self, emg_data: EmgModel) -> Optional[dict]:
@@ -267,3 +267,11 @@ class BlinkAidXGB(BaseEmgDetector):
                                       metadata=metadata)
             else:
                 return None
+
+    def save(self, path: str):
+        joblib.dump(self, path)
+
+    @staticmethod
+    def load(path: str):
+        return joblib.load(path)
+

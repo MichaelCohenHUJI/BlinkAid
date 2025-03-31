@@ -10,8 +10,8 @@ from services.detection.emg_detectors.examples.blink_detector_threshold_voting i
 from services.edge.devices.playback.emg_csv_reader import EmgCsvReader
 from services.common.models.detection import DetectionModel
 
-from services.detection.emg_detectors.michael_windowed_baseline.XGB_windowed_baseline import XGB_windowed_baseline
-
+from services.detection.emg_detectors.michael_windowed_baseline.XGB_windowed_baseline_old import XGB_windowed_baseline
+from BlinkAidXGB import BlinkAidXGB
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,10 @@ if __name__ == "__main__":
     # <-- USE YOUR DETECTOR HERE -->
     # detector = BlinkDetectorThresholdVoting()
     # detector = BlinkDetectorCNN()
-    detector = XGB_windowed_baseline()
+    from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
+    models_path = str(MICHAEL_DETECTOR_DIR) + "/models/"
+    model_name = "raz_yon_mich_80%data_xgb_3pc_2025-03-31_16-52-36"
+    detector = BlinkAidXGB.load(models_path + model_name + '/' + model_name + '.pkl')
 
     # <-- USE YOUR CSV HERE -->
     yon = 'data/yonatan_23-2'

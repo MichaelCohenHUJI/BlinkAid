@@ -3,6 +3,7 @@ from enum import Enum, auto
 
 
 class DetectionType(Enum):
+    NEUTRAL = "neutral"
     BLINK = "Blink"
     GAZE_LEFT = "Gaze Left"
     GAZE_RIGHT = "Gaze Right"
