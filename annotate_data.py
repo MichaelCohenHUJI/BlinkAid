@@ -68,7 +68,9 @@ if __name__ == '__main__':
                 ('2025_03_03_1308_raz_left_right.csv', 'raz3-3_lr_ts.csv'),
                 ('2025_03_03_1319_raz_right_center_2.csv', 'raz3-3_rc2_ts.csv'),
                 ('2025_03_03_1322_raz_up_down.csv', 'raz3-3_ud_ts.csv'),
-                ('2025_03_03_1303_raz_blinks_no_metronome.csv', 'raz_3-3_blinks_ts.csv')],
+                ('2025_03_03_1303_raz_blinks_no_metronome.csv', 'raz_3-3_blinks_ts.csv'),
+                ('2025_03_30_1301_raz_left_center.csv', 'raz30-3_lc_ts.csv'),
+                ('2025_03_30_1340_raz_right_center.csv', 'raz30-3_rc_ts.csv')],
 
         'yon': [('blinks.csv', 'ts_blinks_yon23-2.csv'),
                 ('eye gaze left right 1.csv', 'ts_eg1_yon23-2.csv'),
@@ -80,7 +82,7 @@ if __name__ == '__main__':
                  ('2025_03_03_1359_michael_up_down.csv', 'michael_3-3_ud_ts.csv')]
     }
 
-    folder_paths = {'raz': 'data/raz_3-3/', 'yon': 'data/yonatan_23-2/', 'mich': 'data/michael_3-3/'}
+    folder_paths = {'raz': 'data/raz/', 'yon': 'data/yonatan/', 'mich': 'data/michael/'}
 
     annotated_path = 'annotated/'
     for subj in data_ann_pairs.keys():
