@@ -388,10 +388,10 @@ def visualize_channels(input, plot_name, is_file=False):
 
 if __name__ == "__main__":
     # Replace with your file path
-    yon = 'data/yonatan_23-2'
-    raz = 'data/2025-03-30-raz'
-    mich = 'data/2025-03-30-michael'
-    yech = 'data/2025-03-30-yechiam'
+    yon = 'data/yonatan'
+    raz = 'data/raz'
+    mich = 'data/michael'
+    yech = 'data/yechiam'
 
-    filepath = os.path.join(raz, '2025_03_30_1301_raz_left_center.csv')
+    filepath = os.path.join(mich, '2025_03_30_1121_michael_right_center.csv')
     visualize_channels(filepath, '', True)
