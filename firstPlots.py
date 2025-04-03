@@ -392,6 +392,7 @@ if __name__ == "__main__":
     raz = 'data/raz'
     mich = 'data/michael'
     yech = 'data/yechiam'
+    noise = 'data/noise'
 
-    filepath = os.path.join(mich, '2025_03_30_1121_michael_right_center.csv')
+    filepath = os.path.join(noise, '2025_03_30_1330_noise.csv')
     visualize_channels(filepath, '', True)

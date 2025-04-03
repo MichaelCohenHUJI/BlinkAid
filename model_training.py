@@ -9,10 +9,26 @@ import os
 
 
 if __name__ == '__main__':
-    subj_list = ["raz", "yon", "mich"]
+    subj_list = [
+                "raz",
+                "yon",
+                "mich",
+                "noise"
+    ]
     trained_on = ''
     for subj in subj_list:
         trained_on += subj + '_'
+    xgb_params = {
+        "max_depth": 6,
+        "learning_rate": 0.1,
+        "n_estimators": 100,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "gamma": 0.2,
+        "reg_lambda": 1.0,
+        "reg_alpha": 0.1
+    }
+
     split_ratio = 0.2
     p_components = 3
     sample_rate = 250
@@ -23,11 +39,13 @@ if __name__ == '__main__':
     num_channels = 16
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     classes = [DetectionType.NEUTRAL, DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
-                         DetectionType.GAZE_CENTER, DetectionType.GAZE_UP, DetectionType.GAZE_DOWN]
+                         DetectionType.GAZE_CENTER, DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
     data_paths = DATA
 
     # init model
-    model = BlinkAidXGB(classes, split_ratio=split_ratio,)
+    model = BlinkAidXGB(classes, split_ratio=split_ratio, xgb_params=xgb_params, p_components=p_components, sample_rate=sample_rate,
+                        training_window_overlap=training_window_overlap, inf_window_overlap=inf_window_overlap,
+                        window_length=window_length, cooldown=cooldown, num_channels=num_channels)
     # train model
     model.fit(data_paths, subj_list)
 

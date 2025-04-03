@@ -8,11 +8,12 @@ import math
 from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.common.models.detection import DetectionModel
-from pca_ica_exploration import train_pca, apply_train_pca
+from pca_helpers import train_pca, apply_train_pca
 from tqdm import tqdm
 from windowing import create_windows
 from training_helpers import collect_data
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class BlinkAidXGB(BaseEmgDetector):
                  num_channels=16,
                  p_components=3,
                  split_ratio=0.2,  # 0 - 1, fraction of validation set out of the input data
+                 xgb_params=None,
                  **kwargs):
         """
         Initialize XGBoost model for BlinkAid datasets
@@ -45,6 +47,7 @@ class BlinkAidXGB(BaseEmgDetector):
         """
         super().__init__(**kwargs)
 
+        self._xgb_params = xgb_params or {}
         self._scaler = None
         self._pca_model = None
 
@@ -80,6 +83,13 @@ class BlinkAidXGB(BaseEmgDetector):
 
     def is_fitted(self) -> bool:
         return self._fitted
+
+    def get_scaler(self):
+        return self._scaler
+
+    def get_pca_model(self):
+        return self._pca_model
+
 
 
     def fit(self, data_paths_dict, subj_list):
@@ -136,6 +146,7 @@ class BlinkAidXGB(BaseEmgDetector):
             objective='multi:softprob',  # Softmax output
             num_class=self._n_classes,  # Replace N with the number of classes
             n_jobs=-1,
+            **self._xgb_params
         )
         model.fit(X_train, y_train)
 
@@ -160,7 +171,6 @@ class BlinkAidXGB(BaseEmgDetector):
         self._model = model
         self._fitted = True
         return self
-
 
     def get_performance_report(self):
         if not self._fitted:
@@ -231,6 +241,49 @@ class BlinkAidXGB(BaseEmgDetector):
         print(report)
         return self
 
+    def test_model(self, annotated_data_paths, subj_list):
+        if not self._fitted:
+            raise ValueError("Model was not fitted yet.")
+        # Collect annotated input data
+        test_dfs, _ = collect_data(annotated_data_paths, subj_list, 0)
+        # Apply PCA transformation to each annotated dataset
+        print("Applying PCA transformation...")
+        test_dfs_pca = [apply_train_pca(df, self._scaler, self._pca_model) for df in test_dfs]
+        # Create windows from the PCA-transformed data
+        print("Creating windows from annotated data...")
+        test_windows = []
+        for df in tqdm(test_dfs_pca, desc="Windowing"):
+            windows = create_windows(df, self._window_length, self._training_window_overlap)
+            test_windows.append(windows)
+        test_windows_df = pd.concat(test_windows, ignore_index=True)
+        # Prepare the features for prediction by dropping non-feature columns
+        X_test = test_windows_df.drop(columns=['timestamp', 'label'])
+        y_test = test_windows_df['label']
+        # Get predictions from the existing model
+        print("Making predictions on new data...")
+        y_pred = self._model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        print(f"Model Accuracy: {accuracy:.4f}")
+        # Compute confusion matrix and classification report
+        cm = confusion_matrix(y_test, y_pred)
+        self._confusion_matrix = cm
+        # report = classification_report(y_test, y_pred, target_names=self._classes_strings)
+        # Ensure label names match
+        present_labels = sorted(set(np.unique(y_test)).union(np.unique(y_pred)))
+        report = classification_report(
+            y_test,
+            y_pred,
+            labels=present_labels,
+            target_names=[self._classes_strings[i] for i in present_labels]
+        )
+        self._validation_report = report
+        print("Confusion Matrix:")
+        print(cm)
+        print("\nClassification Report:")
+        print(report)
+
+        return
+
     def detect(self, emg_data: EmgModel) -> Optional[dict]:
 
         self._buffer.append(emg_data)
@@ -246,7 +299,7 @@ class BlinkAidXGB(BaseEmgDetector):
             confidence = self._model.predict_proba(window)[0][pred]
 
             # self._buffer.pop(0)
-            self._buffer = self._buffer[self._inference_step_size:]  # todo talk to raz about step size and overlap
+            self._buffer = self._buffer[self._inference_step_size:]
 
             if pred != 0:
                 if self._last_detection_time is not None:  # make sure we don't classify single event as two in a row

@@ -1,5 +1,5 @@
 import os
-from pca_ica_exploration import train_pca
+from pca_helpers import train_pca
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
 from windowing import create_windows
 import pandas as pd

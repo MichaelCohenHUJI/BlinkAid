@@ -1,5 +1,6 @@
 import os
-from pca_ica_exploration import train_pca
+from BlinkAidXGB import BlinkAidXGB
+from pca_helpers import train_pca
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
 from windowing import create_windows
 import pandas as pd
@@ -14,12 +15,15 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 
 def load_model(model_folder_path):
     folder_name = os.path.basename(model_folder_path)
-    model = joblib.load(model_folder_path + '/' + folder_name + '.pkl')
-    model_metadata = joblib.load(model_folder_path + '/' + folder_name + '_metadata.pkl')
-    scaler = joblib.load(model_metadata['scaler_path'])
-    pca = joblib.load(model_metadata['pca_model_path'])
-    p_components = model_metadata['p_components']
-    return model, scaler, pca, p_components
+    model: BlinkAidXGB = joblib.load(model_folder_path + '/' + folder_name + '.pkl')
+    # model_metadata = joblib.load(model_folder_path + '/' + folder_name + '_metadata.pkl')
+    # scaler = joblib.load(model_metadata['scaler_path'])
+    # pca = joblib.load(model_metadata['pca_model_path'])
+    # p_components = model_metadata['p_components']
+    scaler = model.get_scaler()
+    pca = model.get_pca_model()
+    p_components = pca.n_components
+    return model
 
 def apply_pca(df, scaler, pca, p_components):
     """
@@ -106,6 +110,13 @@ def main(model_folder_path, data_paths, window_length=0.3, overlap=0.99):
 
 if __name__ == '__main__':
     model_folder_path = str(MICHAEL_DETECTOR_DIR) + "/models/"
-    model_name = 'raz_20%data_xg_windowed_stdized_3pc_2025-03-23_16-15-36'
-    data_paths = DATA['raz']
-    main(model_folder_path + model_name, data_paths)
+    model_name = 'raz_yon_mich_80%data_xgb_3pc_2025-04-02_17-12-43'
+    data_paths = DATA
+    subj_list = [
+                "raz",
+                # "yon",
+                # "mich"
+    ]
+    # main(model_folder_path + model_name, data_paths)
+    model = load_model(model_folder_path + model_name)
+    model.test_model(data_paths, subj_list)

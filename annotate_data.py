@@ -48,6 +48,8 @@ def annotate_data(file_path, labels_file, output_path):
             label = 5
         elif labelstr == 'gazedown':
             label = 6
+        elif labelstr == 'noise':
+            label = 7
         else:
             print(f"Unknown label: {labelstr}, in timestamp: {start_time} - {stop_time}")
             return
@@ -79,16 +81,23 @@ if __name__ == '__main__':
 
         'mich': [('2025_03_03_1350_michael_blinks.csv', 'michael_3-3_blinks_ts.csv'),
                  ('2025_03_03_1354_michael_left_right.csv', 'michael_3-3_lr_ts.csv'),
-                 ('2025_03_03_1359_michael_up_down.csv', 'michael_3-3_ud_ts.csv')]
+                 ('2025_03_03_1359_michael_up_down.csv', 'michael_3-3_ud_ts.csv'),
+                 ('2025_03_30_1113_michael_left_center.csv', 'michael_30_3_lc_charger_ts.csv'),
+                 ('2025_03_30_1121_michael_right_center.csv', 'michael_30_3_rc_charger_ts.csv'),
+                 ('2025_03_30_1134_michael_left_center.csv', 'michael_30_3_lc2_charger_ts.csv')],
+
+        'noise': [('2025_03_30_1330_noise.csv', 'noise_30-3_ts.csv')]
     }
 
-    folder_paths = {'raz': 'data/raz/', 'yon': 'data/yonatan/', 'mich': 'data/michael/'}
+    folder_paths = {'raz': 'data/raz/', 'yon': 'data/yonatan/', 'mich': 'data/michael/', 'noise': 'data/noise/'}
 
     annotated_path = 'annotated/'
     for subj in data_ann_pairs.keys():
         for pair in data_ann_pairs[subj]:
             data_file_name, label_file = pair
             folder_path = folder_paths[subj]
+            if not os.path.exists(folder_path + annotated_path):
+                os.makedirs(folder_path + annotated_path)
             output_name = 'annotated_' + data_file_name
             out_path = folder_path + annotated_path + output_name
             if not os.path.exists(out_path):

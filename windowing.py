@@ -2,7 +2,6 @@ import numpy as np
 from scipy.stats import mode
 import pandas as pd
 import math
-from services.detection.emg_detectors.michael_windowed_baseline.labels import LABELS_TO_CLASSES
 
 
 def create_windows(df, window_length, overlap=0.5, inc_label=True, sample_rate=250):
