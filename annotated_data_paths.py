@@ -18,13 +18,15 @@ ann_data = {
                  'annotated_2025_03_03_1350_michael_blinks.csv',
                  'annotated_2025_03_03_1354_michael_left_right.csv',
                  'annotated_2025_03_03_1359_michael_up_down.csv',
-                 'annotated_2025_03_30_1113_michael_left_center.csv',
-                 'annotated_2025_03_30_1121_michael_right_center.csv',
-                 'annotated_2025_03_30_1134_michael_left_center.csv'
+                 # 'annotated_2025_03_30_1113_michael_left_center.csv',
+                 # 'annotated_2025_03_30_1121_michael_right_center.csv',
+                 # 'annotated_2025_03_30_1134_michael_left_center.csv',
+                 'annotated_2025_03_30_1146_michael_left_center.csv',
+                 'annotated_2025_03_30_1150_michael_right_center.csv'
         ],
 
         'noise': [
-            'annotated_2025_03_30_1330_noise.csv'
+            # 'annotated_2025_03_30_1330_noise.csv'
         ]
     }
 

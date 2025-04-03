@@ -159,9 +159,21 @@ class BlinkAidXGB(BaseEmgDetector):
         # Compute confusion matrix and classification report
         cm = confusion_matrix(y_test, y_pred)
         self._confusion_matrix = cm
-        report = classification_report(y_test, y_pred, target_names=self._classes_strings)
+        present_labels = sorted(set(np.unique(y_test)).union(np.unique(y_pred)))
+        report = classification_report(
+            y_test,
+            y_pred,
+            labels=present_labels,
+            target_names=[self._classes_strings[i] for i in present_labels]
+        )
         self._validation_report = report
-        report_dict = classification_report(y_test, y_pred, target_names=self._classes_strings, output_dict=True)
+        report_dict = classification_report(
+            y_test,
+            y_pred,
+            labels=present_labels,
+            target_names=[self._classes_strings[i] for i in present_labels],
+            output_dict=True
+        )
         self._validation_report_dict = report_dict
         print("Confusion Matrix:")
         print(cm)
@@ -231,9 +243,21 @@ class BlinkAidXGB(BaseEmgDetector):
         # Compute confusion matrix and classification report
         cm = confusion_matrix(y_test, y_pred)
         self._confusion_matrix = cm
-        report = classification_report(y_test, y_pred, target_names=self._classes_strings)
+        present_labels = sorted(set(np.unique(y_test)).union(np.unique(y_pred)))
+        report = classification_report(
+            y_test,
+            y_pred,
+            labels=present_labels,
+            target_names=[self._classes_strings[i] for i in present_labels]
+        )
         self._validation_report = report
-        report_dict = classification_report(y_test, y_pred, target_names=self._classes_strings, output_dict=True)
+        report_dict = classification_report(
+            y_test,
+            y_pred,
+            labels=present_labels,
+            target_names=[self._classes_strings[i] for i in present_labels],
+            output_dict=True
+        )
         self._validation_report_dict = report_dict
         print("Confusion Matrix:")
         print(cm)

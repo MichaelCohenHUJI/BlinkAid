@@ -84,7 +84,9 @@ if __name__ == '__main__':
                  ('2025_03_03_1359_michael_up_down.csv', 'michael_3-3_ud_ts.csv'),
                  ('2025_03_30_1113_michael_left_center.csv', 'michael_30_3_lc_charger_ts.csv'),
                  ('2025_03_30_1121_michael_right_center.csv', 'michael_30_3_rc_charger_ts.csv'),
-                 ('2025_03_30_1134_michael_left_center.csv', 'michael_30_3_lc2_charger_ts.csv')],
+                 ('2025_03_30_1134_michael_left_center.csv', 'michael_30_3_lc2_charger_ts.csv'),
+                 ('2025_03_30_1146_michael_left_center.csv', 'michael_30_3_lc_paste_ts.csv'),
+                 ('2025_03_30_1150_michael_right_center.csv', 'michael_30_3_rc_paste_ts.csv')],
 
         'noise': [('2025_03_30_1330_noise.csv', 'noise_30-3_ts.csv')]
     }
