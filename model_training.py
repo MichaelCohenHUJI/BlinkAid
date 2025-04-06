@@ -18,19 +18,19 @@ if __name__ == '__main__':
     trained_on = ''
     for subj in subj_list:
         trained_on += subj + '_'
-    xgb_params = {
-        "max_depth": 6,
-        "learning_rate": 0.1,
-        "n_estimators": 100,
-        "subsample": 0.8,
-        "colsample_bytree": 0.8,
-        "gamma": 0.2,
-        "reg_lambda": 1.0,
-        "reg_alpha": 0.1
-    }
+    # xgb_params = {
+    #     "max_depth": 6,
+    #     "learning_rate": 0.1,
+    #     "n_estimators": 100,
+    #     "subsample": 0.8,
+    #     "colsample_bytree": 0.8,
+    #     "gamma": 0.2,
+    #     "reg_lambda": 1.0,
+    #     "reg_alpha": 0.1
+    # }
 
     split_ratio = 0.2
-    p_components = 3
+    p_components = 4
     sample_rate = 250
     training_window_overlap = 0.99
     inf_window_overlap = 0
@@ -43,11 +43,11 @@ if __name__ == '__main__':
     data_paths = DATA
 
     # init model
-    model = BlinkAidXGB(classes, split_ratio=split_ratio, xgb_params=xgb_params, p_components=p_components, sample_rate=sample_rate,
+    model = BlinkAidXGB(classes, split_ratio=split_ratio, p_components=p_components, sample_rate=sample_rate,
                         training_window_overlap=training_window_overlap, inf_window_overlap=inf_window_overlap,
                         window_length=window_length, cooldown=cooldown, num_channels=num_channels)
     # train model
-    model.fit(data_paths, subj_list)
+    model.fit(data_paths, subj_list, run_ica=False)
 
     # get model performance reoprt
     acc, cm, report, report_dict = model.get_performance_report()

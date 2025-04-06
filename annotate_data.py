@@ -1,11 +1,11 @@
 import pandas as pd
 import os
 
-def annotate_data(file_path, labels_file, output_path):
+def annotate_data(file_path, labels_file_path, output_path):
     '''
-    gets the raw data and labels timestamps and creates a labeled df. saving as a file and returns it
+    gets the raw data and labels timestamps and creates a labeled df. saving as a csv file and returns it as df
     :param file_path: raw data path
-    :param labels_file: labels timestamps path
+    :param labels_file_path: labels timestamps path
     :param output_path: where to save the labeled data (including new file name)
     :return: the labeled df of the format: timestamp, channel_1-channel_16, label
     '''
@@ -20,13 +20,12 @@ def annotate_data(file_path, labels_file, output_path):
     df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
     df['date'] = df['timestamp'].dt.date  # Extract date
     df['time'] = df['timestamp'].dt.strftime('%H:%M:%S.%f')  # Extract time with milliseconds
-    # df.drop(columns=['timestamp'], inplace=True)  # Remove original timestamp column
 
     # Initialize the 'Label' column with 'neutral'
-    df['label'] = 0
+    df['label'] = 0   # neutral label is 0
 
     # Load label intervals from the CSV file
-    label_intervals = pd.read_csv(labels_file)
+    label_intervals = pd.read_csv(labels_file_path)
 
     # Iterate through the label intervals and update the Label column
     for _, row in label_intervals.iterrows():

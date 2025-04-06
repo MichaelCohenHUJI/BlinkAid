@@ -2,7 +2,7 @@ import os
 from BlinkAidXGB import BlinkAidXGB
 from pca_helpers import train_pca
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
-from windowing import create_windows
+from training_helpers import create_windows
 import pandas as pd
 from datetime import datetime
 import joblib

@@ -8,10 +8,9 @@ import math
 from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.common.models.detection import DetectionModel
-from pca_helpers import train_pca, apply_train_pca
+from pca_helpers import train_pca, apply_train_pca, train_ica, apply_train_ica
 from tqdm import tqdm
-from windowing import create_windows
-from training_helpers import collect_data
+from training_helpers import collect_data, create_windows
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import numpy as np
 
@@ -50,6 +49,7 @@ class BlinkAidXGB(BaseEmgDetector):
         self._xgb_params = xgb_params or {}
         self._scaler = None
         self._pca_model = None
+        self._ica_model = None
 
         # initialize needed params
         self._model: XGBClassifier = None
@@ -92,7 +92,7 @@ class BlinkAidXGB(BaseEmgDetector):
 
 
 
-    def fit(self, data_paths_dict, subj_list):
+    def fit(self, data_paths_dict, subj_list, run_ica=False):
         """
         main framework for training.
         Stages:
@@ -109,21 +109,28 @@ class BlinkAidXGB(BaseEmgDetector):
         """Stage 2"""
         # train standardization and pca models on the train data
         df_all_train = pd.concat(train_dfs, ignore_index=True)
-        df_all_train_pca, pca_results, pca, scaler = train_pca(df_all_train, self._p_components)
+        df_all_train_pca, pca, scaler = train_pca(df_all_train, self._p_components)
         self._scaler = scaler
         self._pca_model = pca
+
         # apply pca to whole data
-        train_dfs_pca = [apply_train_pca(df, scaler, pca) for df in train_dfs]
-        test_dfs_pca = [apply_train_pca(df, scaler, pca) for df in val_dfs]
+        train_dfs_processed = [apply_train_pca(df, scaler, pca) for df in train_dfs]
+        test_dfs_processed = [apply_train_pca(df, scaler, pca) for df in val_dfs]
+
+        if run_ica:
+            df_all_train_ica, ica = train_ica(df_all_train, n=self._p_components)
+            self._ica_model = ica
+            train_dfs_processed = [apply_train_ica(df, ica) for df in train_dfs]
+            test_dfs_processed = [apply_train_ica(df, ica) for df in val_dfs]
 
         """Stage 3"""
         # create labeled windows from annotated samples
         train_windows = []
         test_windows = []
-        for df in tqdm(train_dfs_pca):
+        for df in tqdm(train_dfs_processed, desc="Windowing train"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             train_windows.append(windows)
-        for df in tqdm(test_dfs_pca):
+        for df in tqdm(test_dfs_processed, desc="Windowing test"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             test_windows.append(windows)
         train_windows_df = pd.concat(train_windows, ignore_index=True)
@@ -189,7 +196,7 @@ class BlinkAidXGB(BaseEmgDetector):
             raise ValueError("Model was not fitted yet.")
         return self._accuracy_score, self._confusion_matrix, self._validation_report, self._validation_report_dict
 
-    def continue_fit(self, data_paths_dict, subj_list):  # todo test
+    def continue_fit(self, data_paths_dict, subj_list):  # todo test method
         """
 
         :param data_paths_dict:
@@ -212,10 +219,10 @@ class BlinkAidXGB(BaseEmgDetector):
         # create labeled windows from annotated samples
         train_windows = []
         test_windows = []
-        for df in tqdm(train_dfs_pca):
+        for df in tqdm(train_dfs_pca, desc="Windowing train"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             train_windows.append(windows)
-        for df in tqdm(test_dfs_pca):
+        for df in tqdm(test_dfs_pca, desc="Windowing test"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             test_windows.append(windows)
         train_windows_df = pd.concat(train_windows, ignore_index=True)

@@ -5,7 +5,7 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn.decomposition import PCA, FastICA
 import os
-from firstPlots import visualize_channels
+from annotationPlots import visualize_channels
 
 annotations = {
     'raz': ['raz3-3_lc_ts.csv', 'raz3-3_lr_ts.csv', 'raz3-3_rc2_ts.csv',

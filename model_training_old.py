@@ -1,7 +1,7 @@
 import os
 from pca_helpers import train_pca
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
-from windowing import create_windows
+from training_helpers import create_windows
 import pandas as pd
 from trainXGB import train_xgb
 from datetime import datetime
