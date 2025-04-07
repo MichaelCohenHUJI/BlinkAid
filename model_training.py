@@ -1,5 +1,4 @@
 from BlinkAidXGB import BlinkAidXGB
-import joblib
 from datetime import datetime
 from annotated_data_paths import DATA
 from services.common.enums.detection_types import DetectionType
@@ -7,30 +6,21 @@ from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_D
 import os
 
 
-
 if __name__ == '__main__':
     subj_list = [
                 "raz",
                 "yon",
                 "mich",
-                "noise"
+                # "noise"
     ]
     trained_on = ''
     for subj in subj_list:
         trained_on += subj + '_'
-    # xgb_params = {
-    #     "max_depth": 6,
-    #     "learning_rate": 0.1,
-    #     "n_estimators": 100,
-    #     "subsample": 0.8,
-    #     "colsample_bytree": 0.8,
-    #     "gamma": 0.2,
-    #     "reg_lambda": 1.0,
-    #     "reg_alpha": 0.1
-    # }
 
     split_ratio = 0.2
-    p_components = 4
+    p_components = 3
+    run_ica = True
+    i_components = 3
     sample_rate = 250
     training_window_overlap = 0.99
     inf_window_overlap = 0
@@ -45,9 +35,10 @@ if __name__ == '__main__':
     # init model
     model = BlinkAidXGB(classes, split_ratio=split_ratio, p_components=p_components, sample_rate=sample_rate,
                         training_window_overlap=training_window_overlap, inf_window_overlap=inf_window_overlap,
-                        window_length=window_length, cooldown=cooldown, num_channels=num_channels)
+                        window_length=window_length, cooldown=cooldown, num_channels=num_channels, run_ica=run_ica,
+                        i_components=i_components)
     # train model
-    model.fit(data_paths, subj_list, run_ica=False)
+    model.fit(data_paths, subj_list)
 
     # get model performance reoprt
     acc, cm, report, report_dict = model.get_performance_report()

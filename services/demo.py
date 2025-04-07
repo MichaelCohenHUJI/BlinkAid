@@ -58,13 +58,13 @@ if __name__ == "__main__":
     # detector = BlinkDetectorCNN()
     from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
     models_path = str(MICHAEL_DETECTOR_DIR) + "/models/"
-    model_name = "raz_yon_mich_80%data_xgb_3pc_2025-03-31_16-52-36"
+    model_name = "raz_yon_mich_80%data_xgb_3pc_2025-04-06_21-28-20"
     detector = BlinkAidXGB.load(models_path + model_name + '/' + model_name + '.pkl')
 
     # <-- USE YOUR CSV HERE -->
-    yon = 'data/yonatan_23-2'
-    raz = 'data/raz_3-3'
-    mich = 'data/michael_3-3'
+    yon = 'data/yonatan'
+    raz = 'data/raz'
+    mich = 'data/michael'
     filename = '2025_03_03_1354_michael_left_right.csv'
     data_path = PROJECT_ROOT / mich / filename
 

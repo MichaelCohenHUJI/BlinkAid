@@ -26,7 +26,7 @@ ann_data = {
         ],
 
         'noise': [
-            # 'annotated_2025_03_30_1330_noise.csv'
+            'annotated_2025_03_30_1330_noise.csv'
         ]
     }
 

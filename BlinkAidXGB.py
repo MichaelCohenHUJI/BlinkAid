@@ -21,12 +21,14 @@ class BlinkAidXGB(BaseEmgDetector):
     def __init__(self,
                  classes,
                  sample_rate=250,
+                 run_ica=False,
                  training_window_overlap=0.99,  # 0 - 1, for training and validation
                  inf_window_overlap=0,  # 0 - 1, for inference data only
                  window_length=0.3,  # seconds
                  cooldown=0.4,  # seconds, cooldown time between 2 identical predictions
                  num_channels=16,
                  p_components=3,
+                 i_components=3,
                  split_ratio=0.2,  # 0 - 1, fraction of validation set out of the input data
                  xgb_params=None,
                  **kwargs):
@@ -49,6 +51,7 @@ class BlinkAidXGB(BaseEmgDetector):
         self._xgb_params = xgb_params or {}
         self._scaler = None
         self._pca_model = None
+        self._run_ica = run_ica
         self._ica_model = None
 
         # initialize needed params
@@ -63,6 +66,7 @@ class BlinkAidXGB(BaseEmgDetector):
         self._split_ratio = split_ratio
         self._cooldown = cooldown
         self._p_components = p_components
+        self._i_components = i_components
         self._window_size = int(self._window_length * sample_rate)
         self._training_window_overlap = training_window_overlap
         self._inference_step_size = math.ceil((1 - inf_window_overlap) * self._window_size)
@@ -90,9 +94,7 @@ class BlinkAidXGB(BaseEmgDetector):
     def get_pca_model(self):
         return self._pca_model
 
-
-
-    def fit(self, data_paths_dict, subj_list, run_ica=False):
+    def fit(self, data_paths_dict, subj_list):
         """
         main framework for training.
         Stages:
@@ -107,21 +109,21 @@ class BlinkAidXGB(BaseEmgDetector):
         train_dfs, val_dfs = collect_data(data_paths_dict, subj_list, self._split_ratio)
 
         """Stage 2"""
-        # train standardization and pca models on the train data
+        # train standardization and pca/ica models on the train data
         df_all_train = pd.concat(train_dfs, ignore_index=True)
+
         df_all_train_pca, pca, scaler = train_pca(df_all_train, self._p_components)
         self._scaler = scaler
         self._pca_model = pca
-
         # apply pca to whole data
         train_dfs_processed = [apply_train_pca(df, scaler, pca) for df in train_dfs]
-        test_dfs_processed = [apply_train_pca(df, scaler, pca) for df in val_dfs]
+        val_dfs_processed = [apply_train_pca(df, scaler, pca) for df in val_dfs]
 
-        if run_ica:
-            df_all_train_ica, ica = train_ica(df_all_train, n=self._p_components)
+        if self._run_ica:
+            df_all_train_ica, ica = train_ica(df_all_train_pca, n=self._i_components)
             self._ica_model = ica
-            train_dfs_processed = [apply_train_ica(df, ica) for df in train_dfs]
-            test_dfs_processed = [apply_train_ica(df, ica) for df in val_dfs]
+            train_dfs_processed = [apply_train_ica(df, ica) for df in train_dfs_processed]
+            val_dfs_processed = [apply_train_ica(df, ica) for df in val_dfs_processed]
 
         """Stage 3"""
         # create labeled windows from annotated samples
@@ -130,7 +132,7 @@ class BlinkAidXGB(BaseEmgDetector):
         for df in tqdm(train_dfs_processed, desc="Windowing train"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             train_windows.append(windows)
-        for df in tqdm(test_dfs_processed, desc="Windowing test"):
+        for df in tqdm(val_dfs_processed, desc="Windowing test"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             test_windows.append(windows)
         train_windows_df = pd.concat(train_windows, ignore_index=True)
@@ -212,17 +214,20 @@ class BlinkAidXGB(BaseEmgDetector):
 
         """Stage 2"""
         # apply pca to whole data
-        train_dfs_pca = [apply_train_pca(df, self._scaler, self._pca_model) for df in train_dfs]
-        test_dfs_pca = [apply_train_pca(df, self._scaler, self._pca_model) for df in val_dfs]
+        train_dfs_processed = [apply_train_pca(df, self._scaler, self._pca_model) for df in train_dfs]
+        val_dfs_processed = [apply_train_pca(df, self._scaler, self._pca_model) for df in val_dfs]
+        if self._run_ica:
+            train_dfs_processed = [apply_train_ica(df, self._ica_model) for df in train_dfs_processed]
+            val_dfs_processed = [apply_train_ica(df, self._ica_model) for df in val_dfs_processed]
 
         """Stage 3"""
         # create labeled windows from annotated samples
         train_windows = []
         test_windows = []
-        for df in tqdm(train_dfs_pca, desc="Windowing train"):
+        for df in tqdm(train_dfs_processed, desc="Windowing train"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             train_windows.append(windows)
-        for df in tqdm(test_dfs_pca, desc="Windowing test"):
+        for df in tqdm(val_dfs_processed, desc="Windowing test"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             test_windows.append(windows)
         train_windows_df = pd.concat(train_windows, ignore_index=True)
@@ -279,11 +284,13 @@ class BlinkAidXGB(BaseEmgDetector):
         test_dfs, _ = collect_data(annotated_data_paths, subj_list, 0)
         # Apply PCA transformation to each annotated dataset
         print("Applying PCA transformation...")
-        test_dfs_pca = [apply_train_pca(df, self._scaler, self._pca_model) for df in test_dfs]
+        test_dfs_processed = [apply_train_pca(df, self._scaler, self._pca_model) for df in test_dfs]
+        if self._run_ica:
+            test_dfs_processed = [apply_train_ica(df, self._ica_model) for df in test_dfs_processed]
         # Create windows from the PCA-transformed data
         print("Creating windows from annotated data...")
         test_windows = []
-        for df in tqdm(test_dfs_pca, desc="Windowing"):
+        for df in tqdm(test_dfs_processed, desc="Windowing"):
             windows = create_windows(df, self._window_length, self._training_window_overlap)
             test_windows.append(windows)
         test_windows_df = pd.concat(test_windows, ignore_index=True)
@@ -326,8 +333,9 @@ class BlinkAidXGB(BaseEmgDetector):
             scaled_data = pd.DataFrame(self._scaler.transform(data), columns=self._data_cols)
             pca_data = pd.DataFrame(self._pca_model.transform(scaled_data), columns=self._pca_columns)
             window = pd.DataFrame(pca_data.values.flatten().reshape(1, -1), columns=self._window_columns)
-            pred = self._model.predict(window)[0]
-            confidence = self._model.predict_proba(window)[0][pred]
+            probs = self._model.predict_proba(window)[0]
+            pred = np.argmax(probs)
+            confidence = probs[pred]
 
             # self._buffer.pop(0)
             self._buffer = self._buffer[self._inference_step_size:]
