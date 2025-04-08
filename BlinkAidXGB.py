@@ -193,6 +193,42 @@ class BlinkAidXGB(BaseEmgDetector):
         self._fitted = True
         return self
 
+    def fit_hpt(self, X_train, y_train, X_test, y_test):
+        if self._fitted:
+            raise ValueError("Model already fitted")
+        # Train XGBoost model
+        model = xgb.XGBClassifier(
+            eval_metric='mlogloss',  # Multi-class log loss
+            objective='multi:softprob',  # Softmax output
+            num_class=self._n_classes,  # Replace N with the number of classes
+            n_jobs=-1,
+            **self._xgb_params
+        )
+        model.fit(X_train, y_train)
+
+        # Predict on test set
+        y_pred = model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        self._accuracy_score = accuracy
+        # print(f"Model Accuracy: {accuracy:.4f}")
+
+        present_labels = sorted(set(np.unique(y_test)).union(np.unique(y_pred)))
+        report_dict = classification_report(
+            y_test,
+            y_pred,
+            labels=present_labels,
+            target_names=[self._classes_strings[i] for i in present_labels],
+            output_dict=True
+        )
+        self._validation_report_dict = report_dict
+
+        # print("Macro F1:")
+        # print(report_dict['macro avg']['f1-score'])
+
+        self._model = model
+        self._fitted = True
+        return self
+
     def get_performance_report(self):
         if not self._fitted:
             raise ValueError("Model was not fitted yet.")

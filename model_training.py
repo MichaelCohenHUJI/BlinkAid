@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     split_ratio = 0.2
     p_components = 3
-    run_ica = True
+    run_ica = False
     i_components = 3
     sample_rate = 250
     training_window_overlap = 0.99
