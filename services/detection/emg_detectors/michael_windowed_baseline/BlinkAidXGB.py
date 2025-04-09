@@ -8,7 +8,6 @@ import math
 from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.common.models.detection import DetectionModel
-from tqdm import tqdm
 from services.detection.emg_detectors.michael_windowed_baseline.training_helpers import collect_data, train_pca, apply_train_pca, create_datasets
 from sklearn.metrics import confusion_matrix, classification_report
 import numpy as np
@@ -132,9 +131,9 @@ class BlinkAidXGB(BaseEmgDetector):
             objective='multi:softprob',  # Softmax output
             num_class=self._n_classes,  # Replace N with the number of classes
             n_jobs=-1,
-            tree_method='gpu_hist',  # 👈 USE GPU
-            predictor='gpu_predictor',  # 👈 USE GPU
-            gpu_id=0,  # 👈 which GPU (0 is default)
+            # tree_method='hist',  # 👈 USE GPU
+            # device='cuda',
+            # gpu_id=0,  # 👈 which GPU (0 is default)
             **self._xgb_params
         )
         model.fit(X_train, y_train)

@@ -54,9 +54,9 @@ if __name__ == '__main__':
                                                        training_window_overlap, sample_rate)
 
     # Define hyperparameter grids
-    learning_rates = [0.03, 0.05, 0.1, 0.15]
-    max_depths = [5, 6, 7, 8]
-    n_estimators = [100, 200, 300, 400, 500]
+    learning_rates = [0.05, 0.1, 0.15]
+    max_depths = [6, 7, 8]
+    n_estimators = [200, 300, 400, 500]
 
     # Before the loop
     best_score = 0  # Best F1 Score now
