@@ -9,7 +9,7 @@ import os
 if __name__ == '__main__':
     subj_list = [
                 "raz",
-                "yon",
+                # "yon",
                 "mich",
                 # "noise"
     ]
