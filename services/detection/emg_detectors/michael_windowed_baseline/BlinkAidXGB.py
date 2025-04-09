@@ -132,6 +132,9 @@ class BlinkAidXGB(BaseEmgDetector):
             objective='multi:softprob',  # Softmax output
             num_class=self._n_classes,  # Replace N with the number of classes
             n_jobs=-1,
+            tree_method='gpu_hist',  # 👈 USE GPU
+            predictor='gpu_predictor',  # 👈 USE GPU
+            gpu_id=0,  # 👈 which GPU (0 is default)
             **self._xgb_params
         )
         model.fit(X_train, y_train)

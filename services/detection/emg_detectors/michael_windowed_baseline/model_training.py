@@ -17,7 +17,7 @@ if __name__ == '__main__':
     for subj in subj_list:
         trained_on += subj + '_'
 
-    split_ratio = 0.01
+    split_ratio = 0.2
     p_components = 3
     training_window_overlap = 0.99
     inf_window_overlap = 0
@@ -27,12 +27,13 @@ if __name__ == '__main__':
     xgb_params = {  # found with hyperparameter tuning
         'learning_rate': 0.1,
         'max_depth': 8,
-        'n_estimators': 500
+        'n_estimators': 200
     }
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     classes = [DetectionType.NEUTRAL, DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
-                         DetectionType.GAZE_CENTER, DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
+                # DetectionType.GAZE_CENTER,
+               DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
     data_paths = DATA
 
     # init model

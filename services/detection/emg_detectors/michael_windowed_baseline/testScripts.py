@@ -14,7 +14,7 @@ if __name__ == '__main__':
         "raz",
         "yon",
         "mich",
-        # "noise"
+        "noise"
     ]
     trained_on = ''
     for subj in subj_list:
@@ -25,12 +25,13 @@ if __name__ == '__main__':
     training_window_overlap = 0.99
     inf_window_overlap = 0
     window_length = 0.3
-    cooldown = 0.4
+    cooldown = 0.6
     sample_rate = 250
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     classes = [DetectionType.NEUTRAL, DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
-               DetectionType.GAZE_CENTER, DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
+               # DetectionType.GAZE_CENTER,
+               DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
     data_paths = DATA
 
     """Stage 1"""
@@ -53,9 +54,9 @@ if __name__ == '__main__':
                                                        training_window_overlap, sample_rate)
 
     # Define hyperparameter grids
-    learning_rates = [0.03]
-    max_depths = [6]
-    n_estimators = [100]
+    learning_rates = [0.03, 0.05, 0.1, 0.15]
+    max_depths = [5, 6, 7, 8]
+    n_estimators = [100, 200, 300, 400, 500]
 
     # Before the loop
     best_score = 0  # Best F1 Score now

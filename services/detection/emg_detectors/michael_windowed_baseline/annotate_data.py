@@ -42,14 +42,14 @@ def annotate_data(file_path, labels_file_path, output_path):
             label = 2
         elif labelstr == 'gazeright':
             label = 3
-        elif labelstr == 'gazecenter':
-            label = 4
+        # elif labelstr == 'gazecenter':
+        #     label = 4
         elif labelstr == 'gazeup':
-            label = 5
+            label = 4
         elif labelstr == 'gazedown':
-            label = 6
+            label = 5
         elif labelstr == 'noise':
-            label = 7
+            label = 6
         else:
             print(f"Unknown label: {labelstr}, in timestamp: {start_time} - {stop_time}")
             return
@@ -102,6 +102,6 @@ if __name__ == '__main__':
                 os.makedirs(folder_path + annotated_path)
             output_name = 'annotated_' + data_file_name
             out_path = folder_path + annotated_path + output_name
-            if not os.path.exists(out_path):
+            if not os.path.exists(out_path) or True:
                 annotate_data(folder_path + data_file_name, folder_path + label_file, out_path)
 

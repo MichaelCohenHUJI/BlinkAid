@@ -64,7 +64,7 @@ def create_windows(df, window_length, overlap=0.5, sample_rate=250):
 
         # sub-sampling majority class:
         subsamp_ratio = 0.99
-        subsamp_prob = 0.75
+        subsamp_prob = 0.85
         if window_label == 0:  # neutral
             # fraction of samples in the window that are classified as neutral
             frac = (window[label_col] == window_label).sum() / len(window[label_col])
