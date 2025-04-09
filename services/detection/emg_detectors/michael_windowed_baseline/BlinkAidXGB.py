@@ -273,7 +273,7 @@ class BlinkAidXGB(BaseEmgDetector):
 
         # Compute confusion matrix and classification report
         self.calculate_model_performance(y_pred, y_test)
-        return
+        return self._validation_report
 
     def detect(self, emg_data: EmgModel) -> Optional[dict]:
 

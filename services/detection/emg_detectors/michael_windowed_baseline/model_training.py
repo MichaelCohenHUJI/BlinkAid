@@ -9,20 +9,20 @@ import os
 if __name__ == '__main__':
     subj_list = [
                 "raz",
-                # "yon",
+                "yon",
                 "mich",
-                # "noise"
+                "noise"
     ]
     trained_on = ''
     for subj in subj_list:
         trained_on += subj + '_'
 
-    split_ratio = 0.2
+    split_ratio = 0.01
     p_components = 3
     training_window_overlap = 0.99
     inf_window_overlap = 0
     window_length = 0.3
-    cooldown = 0.4
+    cooldown = 0.9
 
     xgb_params = {  # found with hyperparameter tuning
         'learning_rate': 0.1,

@@ -14,4 +14,13 @@ if __name__ == '__main__':
     models_path = str(MICHAEL_DETECTOR_DIR) + "/models/"
     model_name = "raz_mich_80%data_xgb_3pc_2025-04-08_16-19-29"
     model = BlinkAidXGB.load(models_path + model_name + '/' + model_name + '.pkl')
-    model.test_model(data_paths, subj_list)
+    report = model.test_model(data_paths, subj_list)
+    model_folder = str(MICHAEL_DETECTOR_DIR) + "/models/" + model_name + "/"
+
+    # save models training report
+    with open(model_folder + 'Test_report.txt', 'w') as f:
+        f.write("Test results:\n")
+        f.write(str(report) + "\n\n\n")
+
+
+

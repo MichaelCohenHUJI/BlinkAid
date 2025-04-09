@@ -21,6 +21,7 @@ if __name__ == '__main__':
     model_name = "raz_mich_80%data_xgb_3pc_2025-04-08_16-19-29"
     model = BlinkAidXGB.load(models_path + model_name + '/' + model_name + '.pkl')
     model.continue_fit(data_paths, subj_list)
+
     # get model performance reoprt
     acc, cm, report, report_dict = model.get_performance_report()
 
