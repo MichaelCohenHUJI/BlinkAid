@@ -1,4 +1,4 @@
-from BlinkAidXGB import BlinkAidXGB
+from services.detection.emg_detectors.michael_windowed_baseline.BlinkAidXGB import BlinkAidXGB
 from datetime import datetime
 from annotated_data_paths import DATA
 from services.common.enums.detection_types import DetectionType
@@ -9,7 +9,7 @@ import os
 if __name__ == '__main__':
     subj_list = [
                 "raz",
-                # "yon",
+                "yon",
                 "mich",
                 # "noise"
     ]

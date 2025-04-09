@@ -9,8 +9,8 @@ from services.common.models.emg import EmgModel
 from services.detection.emg_detectors.base_emg_detector import BaseEmgDetector
 from services.common.models.detection import DetectionModel
 from tqdm import tqdm
-from training_helpers import collect_data, create_windows, train_pca, apply_train_pca, create_datasets
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from services.detection.emg_detectors.michael_windowed_baseline.training_helpers import collect_data, train_pca, apply_train_pca, create_datasets
+from sklearn.metrics import confusion_matrix, classification_report
 import numpy as np
 
 logger = logging.getLogger(__name__)
