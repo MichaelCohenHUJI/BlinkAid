@@ -1,4 +1,4 @@
-from BlinkAidXGB import BlinkAidXGB
+from services.detection.emg_detectors.michael_windowed_baseline.BlinkAidXGB import BlinkAidXGB
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
 from annotated_data_paths import DATA
 
