@@ -11,7 +11,7 @@ from services.edge.devices.playback.emg_csv_reader import EmgCsvReader
 from services.common.models.detection import DetectionModel
 
 from services.detection.emg_detectors.michael_windowed_baseline.XGB_windowed_baseline_old import XGB_windowed_baseline
-from BlinkAidXGB import BlinkAidXGB
+from services.detection.emg_detectors.michael_windowed_baseline.BlinkAidXGB import BlinkAidXGB
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
