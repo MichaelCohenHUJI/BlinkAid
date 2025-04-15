@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from services.common.paths import PROJECT_ROOT
 
+
 def annotate_data(file_path, labels_file_path, output_path):
     '''
     gets the raw data and labels timestamps and creates a labeled df. saving as a csv file and returns it as df
@@ -42,8 +43,6 @@ def annotate_data(file_path, labels_file_path, output_path):
             label = 2
         elif labelstr == 'gazeright':
             label = 3
-        # elif labelstr == 'gazecenter':
-        #     label = 4
         elif labelstr == 'gazeup':
             label = 4
         elif labelstr == 'gazedown':

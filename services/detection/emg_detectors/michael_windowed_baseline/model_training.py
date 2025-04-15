@@ -17,22 +17,21 @@ if __name__ == '__main__':
     for subj in subj_list:
         trained_on += subj + '_'
 
-    split_ratio = 0.2
-    p_components = 3
+    split_ratio = 0.2  # how much of the data will be for validation set
+    p_components = 3  # pca
     training_window_overlap = 0.99
-    inf_window_overlap = 0
-    window_length = 0.3
-    cooldown = 0.9
+    inf_window_overlap = 0  # inference window overlap
+    window_length = 0.3  # in seconds
+    cooldown = 0.9  # between consequent identical predictions, in seconds
 
     xgb_params = {  # found with hyperparameter tuning
         'learning_rate': 0.1,
-        'max_depth': 8,
-        'n_estimators': 200
+        'max_depth': 6,
+        'n_estimators': 600
     }
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     classes = [DetectionType.NEUTRAL, DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
-                # DetectionType.GAZE_CENTER,
                DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
     data_paths = DATA
 

@@ -10,15 +10,15 @@ import re
 if __name__ == '__main__':
     data_paths = DATA
     subj_list = [
-                # "raz",
+                "raz",
                 "yon",
-                # "mich"
-                # "noise"
+                "mich",
+                "noise"
     ]
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     models_path = str(MICHAEL_DETECTOR_DIR) + "/models/"
-    model_name = "raz_mich_80%data_xgb_3pc_2025-04-08_16-19-29"
+    model_name = "raz_yon_mich_noise_80%data_xgb_3pc_2025-04-09_22-17-42"
     model = BlinkAidXGB.load(models_path + model_name + '/' + model_name + '.pkl')
     model.continue_fit(data_paths, subj_list)
 

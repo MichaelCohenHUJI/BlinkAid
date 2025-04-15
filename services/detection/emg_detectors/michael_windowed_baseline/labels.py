@@ -1,16 +1,15 @@
 from services.common.enums.detection_types import DetectionType
 
-LABELS_TO_CLASSES = {
+CLASSES_TO_LABELS = {
     DetectionType.NEUTRAL: 0,
     DetectionType.BLINK: 1,
     DetectionType.GAZE_LEFT: 2,
     DetectionType.GAZE_RIGHT: 3,
-    DetectionType.GAZE_CENTER: 4,
-    DetectionType.GAZE_UP: 5,
-    DetectionType.GAZE_DOWN: 6,
-    DetectionType.NOISE: 7,
+    DetectionType.GAZE_UP: 4,
+    DetectionType.GAZE_DOWN: 5,
+    DetectionType.NOISE: 6,
 }
 
-CLASSES_TO_LABELS = {
-    v: k for k, v in LABELS_TO_CLASSES.items()
+LABELS_TO_CLASSES= {
+    v: k for k, v in CLASSES_TO_LABELS.items()
 }

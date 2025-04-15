@@ -4,10 +4,8 @@ from datetime import datetime
 from annotated_data_paths import DATA
 from services.common.enums.detection_types import DetectionType
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
-import os
 import pandas as pd
 from training_helpers import collect_data, create_windows, train_pca, apply_train_pca, create_datasets
-from tqdm import tqdm
 
 if __name__ == '__main__':
     subj_list = [
@@ -56,7 +54,7 @@ if __name__ == '__main__':
     # Define hyperparameter grids
     learning_rates = [0.05, 0.1, 0.15]
     max_depths = [6, 7, 8]
-    n_estimators = [200, 300, 400, 500]
+    n_estimators = [300, 400, 500, 600]
 
     # Before the loop
     best_score = 0  # Best F1 Score now
@@ -109,6 +107,8 @@ if __name__ == '__main__':
             best_model = model
             best_report_dict = report_dict
             best_acc = acc
+            best_report = report
+            best_cm = cm
 
     print(f"\nBest Hyperparameters: {best_params}")
     print(f"Best Validation Macro F1 Score: {best_score:.4f}")
