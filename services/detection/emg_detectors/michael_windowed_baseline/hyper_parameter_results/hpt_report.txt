@@ -1,0 +1,7 @@
+Model Accuracy: 95.55%
+
+Best Hyperparameters: {'learning_rate': 0.1, 'max_depth': 6, 'n_estimators': 600}Confusion Matrix:
+None
+
+
+Classification Report:

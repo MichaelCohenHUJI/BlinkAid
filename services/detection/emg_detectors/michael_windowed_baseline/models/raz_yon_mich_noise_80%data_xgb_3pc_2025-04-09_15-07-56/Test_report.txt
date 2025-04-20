@@ -1,0 +1,17 @@
+Test results:
+                precision    recall  f1-score   support
+
+   neutral (0)       0.88      0.95      0.91      6560
+     Blink (1)       0.98      0.97      0.97      5436
+ Gaze Left (2)       0.97      0.93      0.95      5695
+Gaze Right (3)       0.97      0.94      0.95      5481
+   Gaze Up (4)       0.96      0.90      0.93      2413
+ Gaze Down (5)       0.93      0.95      0.94      2381
+     Noise (6)       1.00      1.00      1.00      7687
+
+      accuracy                           0.95     35653
+     macro avg       0.95      0.95      0.95     35653
+  weighted avg       0.96      0.95      0.96     35653
+
+
+
