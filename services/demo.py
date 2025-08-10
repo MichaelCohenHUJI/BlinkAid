@@ -10,7 +10,6 @@ from services.detection.emg_detectors.examples.blink_detector_threshold_voting i
 from services.edge.devices.playback.emg_csv_reader import EmgCsvReader
 from services.common.models.detection import DetectionModel
 
-from services.detection.emg_detectors.michael_windowed_baseline.XGB_windowed_baseline_old import XGB_windowed_baseline
 from services.detection.emg_detectors.michael_windowed_baseline.BlinkAidXGB import BlinkAidXGB
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
