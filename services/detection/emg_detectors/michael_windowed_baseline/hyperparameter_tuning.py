@@ -27,9 +27,14 @@ if __name__ == '__main__':
     sample_rate = 250
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    classes = [DetectionType.NEUTRAL, DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
+    classes = [DetectionType.NEUTRAL,
+               DetectionType.BLINK,
+               DetectionType.GAZE_LEFT,
+               DetectionType.GAZE_RIGHT,
                # DetectionType.GAZE_CENTER,
-               DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
+               DetectionType.GAZE_UP,
+               DetectionType.GAZE_DOWN,
+               DetectionType.NOISE]
     data_paths = DATA
 
     """Stage 1"""

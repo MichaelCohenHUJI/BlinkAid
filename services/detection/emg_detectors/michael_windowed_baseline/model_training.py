@@ -22,7 +22,7 @@ if __name__ == '__main__':
     training_window_overlap = 0.99
     inf_window_overlap = 0  # inference window overlap
     window_length = 0.3  # in seconds
-    cooldown = 0.9  # between consequent identical predictions, in seconds
+    cooldown = 0  # between consequent identical predictions, in seconds
 
     xgb_params = {  # found with hyperparameter tuning
         'learning_rate': 0.1,
@@ -31,8 +31,15 @@ if __name__ == '__main__':
     }
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    classes = [DetectionType.NEUTRAL, DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
-               DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
+    classes = [DetectionType.NEUTRAL,
+               DetectionType.BLINK,
+               DetectionType.GAZE_LEFT,
+               DetectionType.GAZE_RIGHT,
+               DetectionType.GAZE_UP,
+               DetectionType.GAZE_DOWN,
+               DetectionType.NOISE,
+               # Add classes as needed - ORDER IS IMPORTANT
+               ]
     data_paths = DATA
 
     # init model
