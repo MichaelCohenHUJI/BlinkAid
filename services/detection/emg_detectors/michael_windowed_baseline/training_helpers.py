@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA, FastICA
 from tqdm import tqdm
 
 
-def collect_data(data_paths_dict, subj_list, split_ratio):
+def collect_data(data_paths_dict, subj_list, split_ratio, drop_channels=[]):
     """
     creates a list of dataframes containing the training data from the files in the provided paths
     :param data_paths_dict: data paths dictionary, keys are subject names and values are the paths to the data files
@@ -15,6 +15,9 @@ def collect_data(data_paths_dict, subj_list, split_ratio):
     :param split_ratio: 0 - 1 float, the fraction of the data to be used for validation
     :return: list of training data dataframes and validation data dataframes
     """
+    full_set = set(range(1, 17))
+    channels = sorted((full_set - set(drop_channels)))
+    print("num channels: " + str(len(channels)) + " " + str(channels))
     train_dfs = []
     test_dfs = []
     for subj in data_paths_dict:
@@ -23,6 +26,8 @@ def collect_data(data_paths_dict, subj_list, split_ratio):
             continue
         for file_path in data_paths_dict[subj]:
             df = pd.read_csv(file_path)
+            for c in drop_channels:
+                df.drop('channel_' + str(c), axis=1, inplace=True)
             split_idx = int(len(df) * (1 - split_ratio))
             train_dfs.append(df.iloc[:split_idx])
             test_dfs.append(df.iloc[split_idx:])

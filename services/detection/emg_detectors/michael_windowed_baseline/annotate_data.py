@@ -32,20 +32,20 @@ def annotate_data(file_path, labels_file_path, output_path):
     # Iterate through the label intervals and update the Label column
     for _, row in label_intervals.iterrows():
         start_time = row['start']
-        stop_time = row['stop']
+        stop_time = row['end']
         labelstr = row['label']
         label = 0
         if labelstr == 'garbage':
             df = df.drop(df[(df['time'] >= start_time) & (df['time'] <= stop_time)].index)
         elif labelstr == 'blink':
             label = 1
-        elif labelstr == 'gazeleft':
+        elif labelstr == 'gaze_left':
             label = 2
-        elif labelstr == 'gazeright':
+        elif labelstr == 'gaze_right':
             label = 3
-        elif labelstr == 'gazeup':
+        elif labelstr == 'gaze_up':
             label = 4
-        elif labelstr == 'gazedown':
+        elif labelstr == 'gaze_down':
             label = 5
         elif labelstr == 'noise':
             label = 6
@@ -65,32 +65,28 @@ def annotate_data(file_path, labels_file_path, output_path):
 
 if __name__ == '__main__':
     data_ann_pairs = {
-        'raz': [('2025_03_03_1311_raz_left_center.csv', 'raz3-3_lc_ts.csv'),
-                ('2025_03_03_1308_raz_left_right.csv', 'raz3-3_lr_ts.csv'),
-                ('2025_03_03_1319_raz_right_center_2.csv', 'raz3-3_rc2_ts.csv'),
-                ('2025_03_03_1322_raz_up_down.csv', 'raz3-3_ud_ts.csv'),
-                ('2025_03_03_1303_raz_blinks_no_metronome.csv', 'raz_3-3_blinks_ts.csv'),
-                ('2025_03_30_1301_raz_left_center.csv', 'raz30-3_lc_ts.csv'),
-                ('2025_03_30_1340_raz_right_center.csv', 'raz30-3_rc_ts.csv')],
+        'raz': [('data_20250901_171720_converted.csv', 'data_20250901_171720_converted_ts.csv'),
+                # ('data_20250901_173420_converted.csv', 'data_20250901_173420_converted_ts.csv'),
+                ('data_20250901_180608_converted.csv', 'data_20250901_180608_converted_ts.csv'),
+                ('data_20250901_183658_converted.csv', 'data_20250901_183658_converted_ts.csv'),
+                ('data_20250901_184236_converted.csv', 'data_20250901_184236_converted_ts.csv'),
+                ('data_20250901_185926_converted.csv', 'data_20250901_185926_converted_ts.csv')],
 
-        'yon': [('blinks.csv', 'ts_blinks_yon23-2.csv'),
-                ('eye gaze left right 1.csv', 'ts_eg1_yon23-2.csv'),
-                ('eye gaze left right 2.csv', 'ts_eg2_yon23-2.csv'),
-                ('eye movements up down.csv', 'ts_ud_yon23-2.csv')],
+        'shir': [('data_20250901_195658_converted.csv', 'data_20250901_195658_converted_ts.csv'),
+                ('data_20250901_195908_converted.csv', 'data_20250901_195908_converted_ts.csv'),
+                ('data_20250901_200010_converted.csv', 'data_20250901_200010_converted_ts.csv')],
 
-        'mich': [('2025_03_03_1350_michael_blinks.csv', 'michael_3-3_blinks_ts.csv'),
-                 ('2025_03_03_1354_michael_left_right.csv', 'michael_3-3_lr_ts.csv'),
-                 ('2025_03_03_1359_michael_up_down.csv', 'michael_3-3_ud_ts.csv'),
-                 ('2025_03_30_1113_michael_left_center.csv', 'michael_30_3_lc_charger_ts.csv'),
-                 ('2025_03_30_1121_michael_right_center.csv', 'michael_30_3_rc_charger_ts.csv'),
-                 ('2025_03_30_1134_michael_left_center.csv', 'michael_30_3_lc2_charger_ts.csv'),
-                 ('2025_03_30_1146_michael_left_center.csv', 'michael_30_3_lc_paste_ts.csv'),
-                 ('2025_03_30_1150_michael_right_center.csv', 'michael_30_3_rc_paste_ts.csv')],
+        'yech': [('data_20250901_160603_converted.csv', 'data_20250901_160603_converted_ts.csv'),
+                 ('data_20250901_160831_converted.csv', 'data_20250901_160831_converted_ts.csv'),
+                 ('data_20250901_162131_converted.csv', 'data_20250901_162131_converted_ts.csv'),
+                 ('data_20250901_163125_converted.csv', 'data_20250901_163125_converted_ts.csv')],
 
-        'noise': [('2025_03_30_1330_noise.csv', 'noise_30-3_ts.csv')]
+        # 'noise': [('2025_03_30_1330_noise.csv', 'noise_30-3_ts.csv')]
     }
 
-    folder_paths = {'raz': 'data/raz/', 'yon': 'data/yonatan/', 'mich': 'data/michael/', 'noise': 'data/noise/'}
+    folder_paths = {'raz': 'data/new/raz/', 'shir': 'data/new/shir/', 'yech': 'data/new/yechiam/',
+                    #'noise': 'data/noise/'
+                    }
 
     annotated_path = 'annotated/'
     for subj in data_ann_pairs.keys():

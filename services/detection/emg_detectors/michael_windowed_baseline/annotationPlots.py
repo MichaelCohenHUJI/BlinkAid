@@ -418,5 +418,5 @@ if __name__ == "__main__":
     yech = str(PROJECT_ROOT) + '/data/yechiam'
     noise = str(PROJECT_ROOT) + '/data/noise'
 
-    filepath = os.path.join(noise, '2025_03_30_1330_noise.csv')
+    filepath = os.path.join(raz, '2025_03_03_1308_raz_left_right.csv')
     visualize_channels(filepath, '', True)

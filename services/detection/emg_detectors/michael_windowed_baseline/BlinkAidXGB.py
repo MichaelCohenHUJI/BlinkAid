@@ -108,7 +108,8 @@ class BlinkAidXGB(BaseEmgDetector):
         """
         """Stage 1"""
         # collect data from all files
-        train_dfs, val_dfs = collect_data(data_paths_dict, subj_list, self._split_ratio)
+        # leave only channels 3,8,9,14
+        train_dfs, val_dfs = collect_data(data_paths_dict, subj_list, self._split_ratio, [1,2,4,5,6,7,9,10,11,12,13,14,15,16])
 
         """Stage 2"""
         # train standardization and pca/ica models on the train data
@@ -218,7 +219,7 @@ class BlinkAidXGB(BaseEmgDetector):
         self._fitted = True
         return self
 
-    def continue_fit(self, data_paths_dict, subj_list):  # todo test method
+    def continue_fit(self, data_paths_dict, subj_list):
         """
         continue training an existing model on new data
         :param data_paths_dict: dictionary with data paths, keys are the subjects the data was recorded on

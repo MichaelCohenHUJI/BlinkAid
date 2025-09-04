@@ -1,6 +1,6 @@
 from services.detection.emg_detectors.michael_windowed_baseline.BlinkAidXGB import BlinkAidXGB
 from datetime import datetime
-from annotated_data_paths import DATA
+from annotated_data_paths_new import DATA
 from services.common.enums.detection_types import DetectionType
 from services.detection.emg_detectors.michael_windowed_baseline import MICHAEL_DETECTOR_DIR
 import os
@@ -9,8 +9,8 @@ import os
 if __name__ == '__main__':
     subj_list = [
                 "raz",
-                "yon",
-                "mich",
+                "yech",
+                "shir",
                 "noise"
     ]
     trained_on = ''
@@ -18,7 +18,7 @@ if __name__ == '__main__':
         trained_on += subj + '_'
 
     split_ratio = 0.2  # how much of the data will be for validation set
-    p_components = 3  # pca
+    p_components = 1  # pca
     training_window_overlap = 0.99
     inf_window_overlap = 0  # inference window overlap
     window_length = 0.3  # in seconds
@@ -31,8 +31,13 @@ if __name__ == '__main__':
     }
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    classes = [DetectionType.NEUTRAL, DetectionType.BLINK, DetectionType.GAZE_LEFT, DetectionType.GAZE_RIGHT,
-               DetectionType.GAZE_UP, DetectionType.GAZE_DOWN, DetectionType.NOISE]
+    classes = [DetectionType.NEUTRAL,
+               DetectionType.BLINK,
+               DetectionType.GAZE_LEFT,
+               DetectionType.GAZE_RIGHT,
+               DetectionType.GAZE_UP,
+               DetectionType.GAZE_DOWN,
+               DetectionType.NOISE]
     data_paths = DATA
 
     # init model
